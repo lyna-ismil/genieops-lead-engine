@@ -43,7 +43,7 @@ class Campaign(SQLModel, table=True):
 
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
-    target_conversion: Optional[float] = None
+    target_conversion: Optional[str] = None
 
     linked_in_post: Optional[str] = None
     upgrade_offer: Optional[dict] = Field(default=None, sa_column=Column(JSON))

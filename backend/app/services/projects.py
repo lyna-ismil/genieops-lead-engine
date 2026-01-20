@@ -240,11 +240,11 @@ def update_project(session: Session, campaign_id: str, payload: ProjectUpdate) -
     data = payload.model_dump(exclude_none=True)
     if "icp" in data:
         icp = data.pop("icp")
-        campaign.icp_role = icp.role
-        campaign.icp_industry = icp.industry
-        campaign.icp_company_size = icp.company_size
-        campaign.icp_pain_points = icp.pain_points
-        campaign.icp_goals = icp.goals
+        campaign.icp_role = icp.get("role")
+        campaign.icp_industry = icp.get("industry")
+        campaign.icp_company_size = icp.get("company_size")
+        campaign.icp_pain_points = icp.get("pain_points")
+        campaign.icp_goals = icp.get("goals")
     for key, value in data.items():
         if key == "status" and hasattr(value, "value"):
             value = value.value

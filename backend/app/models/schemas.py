@@ -46,7 +46,7 @@ class CampaignBase(BaseModel):
     icp: ICPProfile
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
-    target_conversion: Optional[float] = None
+    target_conversion: Optional[str] = None
 
 
 class CampaignCreate(CampaignBase):
@@ -59,7 +59,7 @@ class CampaignUpdate(BaseModel):
     icp: Optional[ICPProfile] = None
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
-    target_conversion: Optional[float] = None
+    target_conversion: Optional[str] = None
 
 
 class Campaign(CampaignBase):
@@ -121,6 +121,20 @@ class AssetCreate(BaseModel):
     content_json: Optional[dict] = None
 
 
+class Section(BaseModel):
+    id: str
+    title: str
+    body: str
+    variant: str = "generic"  # feature, testimonial, faq, hero, generic
+
+
+class FormFieldModel(BaseModel):
+    name: str
+    label: str
+    type: str = "text"
+    required: bool = True
+
+
 class LandingPage(BaseModel):
     id: str
     lead_magnet_id: str
@@ -131,8 +145,10 @@ class LandingPage(BaseModel):
     cta: str
     html_content: str
     image_url: Optional[str] = None
-    sections: Optional[dict] = None
-    form_schema: Optional[dict] = None
+    sections: list[Section] = Field(default_factory=list)
+    form_schema: list[FormFieldModel] = Field(default_factory=list)
+    social_proof: list[dict] = Field(default_factory=list)
+    faq: list[dict] = Field(default_factory=list)
     created_at: datetime
 
 
@@ -144,8 +160,11 @@ class LandingPageConfig(BaseModel):
     cta: str
     html_content: str = Field(alias="htmlContent")
     image_url: Optional[str] = Field(default=None, alias="imageUrl")
-    sections: Optional[dict] = None
-    form_schema: Optional[dict] = Field(default=None, alias="formSchema")
+    sections: list[Section] = Field(default_factory=list)
+    form_schema: list[FormFieldModel] = Field(default_factory=list, alias="formSchema")
+    social_proof: list[dict] = Field(default_factory=list, alias="socialProof")
+    faq: list[dict] = Field(default_factory=list)
+    raw_image_prompt: Optional[str] = Field(default=None, alias="rawImagePrompt")
 
 
 class LandingPageCreate(BaseModel):
@@ -157,23 +176,38 @@ class LandingPageCreate(BaseModel):
     cta: str
     html_content: str
     image_url: Optional[str] = None
-    sections: Optional[dict] = None
-    form_schema: Optional[dict] = None
+    sections: list[Section] = Field(default_factory=list)
+    form_schema: list[FormFieldModel] = Field(default_factory=list)
+    social_proof: list[dict] = Field(default_factory=list)
+    faq: list[dict] = Field(default_factory=list)
+    raw_image_prompt: Optional[str] = None
 
 
 class IdeationRequest(BaseModel):
     icp: ICPProfile
+    offer_type: Optional[str] = None
+    brand_voice: Optional[str] = None
+    target_conversion: Optional[str] = None
+
 
 
 class AssetRequest(BaseModel):
     idea: LeadMagnetIdea
     icp: ICPProfile
+    offer_type: Optional[str] = None
+    brand_voice: Optional[str] = None
+    target_conversion: Optional[str] = None
+
 
 
 class LandingPageRequest(BaseModel):
     idea: LeadMagnetIdea
     asset: GeneratedAsset
     image_url: Optional[str] = None
+    offer_type: Optional[str] = None
+    brand_voice: Optional[str] = None
+    target_conversion: Optional[str] = None
+
 
 
 class ThankYouRequest(BaseModel):
@@ -182,6 +216,10 @@ class ThankYouRequest(BaseModel):
 
 class NurtureRequest(BaseModel):
     idea: LeadMagnetIdea
+    offer_type: Optional[str] = None
+    brand_voice: Optional[str] = None
+    target_conversion: Optional[str] = None
+
 
 
 class UpgradeOfferRequest(BaseModel):
@@ -192,11 +230,15 @@ class UpgradeOfferRequest(BaseModel):
 class LinkedInRequest(BaseModel):
     idea: LeadMagnetIdea
     landing_page: LandingPageConfig
+    brand_voice: Optional[str] = None
+
 
 
 class HeroImageRequest(BaseModel):
     idea: LeadMagnetIdea
     icp: ICPProfile
+    brand_voice: Optional[str] = None
+    offer_type: Optional[str] = None
 
 
 class Email(BaseModel):
@@ -358,7 +400,7 @@ class ProjectCreate(BaseModel):
     icp: ICPProfile
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
-    target_conversion: Optional[float] = None
+    target_conversion: Optional[str] = None
     selected_idea: Optional[LeadMagnetBase] = None
     asset: Optional[AssetCreate] = None
     landing_page: Optional[LandingPageCreate] = None
@@ -373,7 +415,7 @@ class ProjectUpdate(BaseModel):
     icp: Optional[ICPProfile] = None
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
-    target_conversion: Optional[float] = None
+    target_conversion: Optional[str] = None
     selected_idea: Optional[LeadMagnetBase] = None
     asset: Optional[AssetCreate] = None
     landing_page: Optional[LandingPageCreate] = None
@@ -389,6 +431,7 @@ class ProjectSummary(BaseModel):
     email_sequences: list[EmailSequence]
 
 
+
 class ProjectView(BaseModel):
     id: str
     name: str
@@ -397,10 +440,20 @@ class ProjectView(BaseModel):
     icp: ICPProfile
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
-    target_conversion: Optional[float] = None
+    target_conversion: Optional[str] = None
     selected_idea: Optional[LeadMagnet] = None
     asset: Optional[Asset] = None
     landing_page: Optional[LandingPage] = None
     email_sequence: Optional[EmailSequence] = None
     linked_in_post: Optional[str] = None
     upgrade_offer: Optional[dict] = None
+
+
+class PersonaSummary(BaseModel):
+    summary: str
+    hooks: list[str]
+
+
+class PersonaSummaryRequest(BaseModel):
+    icp: ICPProfile
+

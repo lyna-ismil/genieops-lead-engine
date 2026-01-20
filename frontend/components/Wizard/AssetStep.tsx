@@ -6,12 +6,14 @@ import { FileText, Loader2, RefreshCw, Copy, Check } from 'lucide-react';
 interface Props {
   icp: ICPProfile;
   idea: LeadMagnetIdea;
+  offerType?: string;
+  brandVoice?: string;
   onNext: (asset: GeneratedAsset) => void;
   onBack: () => void;
   savedAsset?: GeneratedAsset;
 }
 
-const AssetStep: React.FC<Props> = ({ icp, idea, onNext, onBack, savedAsset }) => {
+const AssetStep: React.FC<Props> = ({ icp, idea, offerType, brandVoice, onNext, onBack, savedAsset }) => {
   const [asset, setAsset] = useState<GeneratedAsset | null>(savedAsset || null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -19,7 +21,7 @@ const AssetStep: React.FC<Props> = ({ icp, idea, onNext, onBack, savedAsset }) =
   const generate = async () => {
     setLoading(true);
     try {
-      const result = await generateAssetContent(idea, icp);
+      const result = await generateAssetContent(idea, icp, offerType, brandVoice);
       setAsset(result);
     } catch (error) {
       console.error(error);
@@ -42,7 +44,7 @@ const AssetStep: React.FC<Props> = ({ icp, idea, onNext, onBack, savedAsset }) =
   };
 
   return (
-    <div className="max-w-5xl mx-auto h-[calc(100vh-200px)] flex flex-col">
+    <div className="max-w-5xl mx-auto h-[calc(100vh-200px)] flex flex-col animate-fade-in">
        <div className="flex justify-between items-end mb-6 shrink-0">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Asset Generation</h2>
@@ -105,7 +107,7 @@ const AssetStep: React.FC<Props> = ({ icp, idea, onNext, onBack, savedAsset }) =
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          Create Landing Page &rarr;
+          Next: Create Landing Page &rarr;
         </button>
       </div>
     </div>

@@ -11,6 +11,7 @@ from app.api.routes.llm import router as llm_router
 from app.api.routes.nurture_steps import router as nurture_steps_router
 from app.api.routes.email_logs import router as email_logs_router
 from app.api.routes.nurture_sequences import router as nurture_sequences_router
+from app.api.routes.social import router as social_router
 
 api_router = APIRouter()
 
@@ -26,3 +27,4 @@ api_router.include_router(nurture_sequences_router, prefix="/api/nurture-sequenc
 api_router.include_router(nurture_steps_router, prefix="/api/nurture-steps", tags=["nurture-steps"])
 api_router.include_router(email_logs_router, prefix="/api/email-logs", tags=["email-logs"])
 api_router.include_router(public_router, prefix="/public", tags=["public"])
+api_router.include_router(social_router, prefix="/api/social", tags=["social"])

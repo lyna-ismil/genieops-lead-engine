@@ -21,6 +21,10 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
+    linkedin_client_id: str | None = None
+    linkedin_client_secret: str | None = None
+    linkedin_redirect_uri: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:

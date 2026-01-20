@@ -1,8 +1,9 @@
 import React from 'react';
 import { LayoutDashboard, PlusCircle, Settings, Layers, Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { ToastProvider } from '../context/ToastContext';
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
@@ -71,6 +72,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </main>
     </div>
+  );
+};
+
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <ToastProvider>
+      <LayoutContent>{children}</LayoutContent>
+    </ToastProvider>
   );
 };
 

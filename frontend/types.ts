@@ -21,13 +21,35 @@ export interface GeneratedAsset {
   type: string;
 }
 
+export interface Section {
+  id: string;
+  title: string;
+  body: string; // HTML allowed here
+  variant: 'feature' | 'testimonial' | 'faq' | 'hero' | 'generic';
+}
+
+export interface FormField {
+  name: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'textarea';
+  required: boolean;
+}
+
 export interface LandingPageConfig {
   headline: string;
   subheadline: string;
-  bullets: string[];
+  bullets: string[]; // specific to hero benefits
   cta: string;
-  htmlContent: string; // Full HTML string
+  htmlContent: string; // Full HTML string as fallback or container
   imageUrl?: string;
+  slug?: string;
+  
+  // New Structured Fields
+  sections: Section[];
+  formSchema: FormField[];
+  socialProof?: { logoUrl?: string; quote?: string; author?: string }[];
+  faq?: { question: string; answer: string }[];
+  rawImagePrompt?: string; 
 }
 
 export interface Email {
@@ -68,8 +90,12 @@ export interface Project {
   id: string;
   name: string;
   createdAt: string;
+  updatedAt?: string;
   status: 'draft' | 'published';
   icp: ICPProfile;
+  offerType?: string;
+  brandVoice?: string;
+  targetConversion?: string;
   selectedIdea?: LeadMagnetIdea;
   asset?: GeneratedAsset;
   landingPage?: LandingPageConfig;
@@ -81,6 +107,12 @@ export interface Project {
     cta: string;
   };
 }
+
+export interface PersonaSummary {
+  summary: string;
+  hooks: string[];
+}
+
 
 // Gemini AI Response Schemas
 export enum AgentType {

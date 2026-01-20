@@ -5,12 +5,14 @@ import { Mail, Clock, ArrowRight, Loader2, Gift } from 'lucide-react';
 
 interface Props {
   idea: LeadMagnetIdea;
+  brandVoice?: string;
+  targetConversion?: string;
   onNext: (emails: Email[], upgrade: any) => void;
   onBack: () => void;
   savedEmails?: Email[];
 }
 
-const NurtureStep: React.FC<Props> = ({ idea, onNext, onBack, savedEmails }) => {
+const NurtureStep: React.FC<Props> = ({ idea, brandVoice, targetConversion, onNext, onBack, savedEmails }) => {
   const [emails, setEmails] = useState<Email[]>(savedEmails || []);
   const [upgrade, setUpgrade] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -18,7 +20,7 @@ const NurtureStep: React.FC<Props> = ({ idea, onNext, onBack, savedEmails }) => 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const emailResult = await generateNurtureSequence(idea);
+      const emailResult = await generateNurtureSequence(idea, brandVoice, targetConversion);
       setEmails(emailResult);
       
       const upgradeResult = await generateUpgradeOffer(idea, emailResult);
@@ -59,7 +61,7 @@ const NurtureStep: React.FC<Props> = ({ idea, onNext, onBack, savedEmails }) => 
                      {/* Timeline Line */}
                     <div className="absolute left-6 top-4 bottom-4 w-0.5 bg-gray-200 z-0"></div>
 
-                    {emails.map((email, idx) => (
+                    {Array.isArray(emails) && emails.map((email, idx) => (
                         <div key={idx} className="relative z-10 pl-14">
                             <div className="absolute left-3 top-0 bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border-2 border-white shadow-sm">
                                 {idx + 1}

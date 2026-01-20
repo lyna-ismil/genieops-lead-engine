@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { ICPProfile, LeadMagnetIdea } from '../../types';
 import { generateLeadMagnetIdeas } from '../../services/gemini';
-import { Lightbulb, Loader2, CheckCircle2, TrendingUp, RefreshCw } from 'lucide-react';
+import { Loader2, CheckCircle2, TrendingUp, RefreshCw } from 'lucide-react';
 
 interface Props {
   icp: ICPProfile;
+  offerType?: string;
+  brandVoice?: string;
+  targetConversion?: string;
   onNext: (idea: LeadMagnetIdea) => void;
   onBack: () => void;
   savedIdea?: LeadMagnetIdea;
 }
 
-const IdeationStep: React.FC<Props> = ({ icp, onNext, onBack, savedIdea }) => {
+const IdeationStep: React.FC<Props> = ({ icp, offerType, brandVoice, targetConversion, onNext, onBack, savedIdea }) => {
   const [ideas, setIdeas] = useState<LeadMagnetIdea[]>(savedIdea ? [savedIdea] : []);
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(savedIdea?.id || null);
@@ -20,13 +23,14 @@ const IdeationStep: React.FC<Props> = ({ icp, onNext, onBack, savedIdea }) => {
     setLoading(true);
     setError(null);
     try {
-      const generated = await generateLeadMagnetIdeas(icp);
+      const generated = await generateLeadMagnetIdeas(icp, offerType, brandVoice, targetConversion);
       // Ensure IDs
       const withIds = generated.map((g, i) => ({ ...g, id: g.id || `idea-${Date.now()}-${i}` }));
       setIdeas(withIds);
     } catch (err) {
       console.error(err);
-      setError("Failed to generate ideas. Please check your API key and try again.");
+      const msg = (err as any)?.message || "Failed to generate ideas. Please check console.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -49,7 +53,7 @@ const IdeationStep: React.FC<Props> = ({ icp, onNext, onBack, savedIdea }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-20">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Lead Magnet Ideas</h2>
@@ -137,7 +141,7 @@ const IdeationStep: React.FC<Props> = ({ icp, onNext, onBack, savedIdea }) => {
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          Generate Assets &rarr;
+          Next: Generate Assets &rarr;
         </button>
       </div>
     </div>

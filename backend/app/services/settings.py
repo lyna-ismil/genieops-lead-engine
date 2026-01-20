@@ -21,9 +21,21 @@ def _to_schema(db: AppSetting) -> Settings:
 
 def get_app_settings(session: Session) -> Settings:
     existing = session.exec(select(AppSetting).limit(1)).first()
-    if existing:
-        return _to_schema(existing)
     env = get_settings()
+    if existing:
+        # Auto-sync if env settings changed (Migration logic)
+        if (env.llm_provider and env.llm_provider != existing.llm_provider) or \
+           (env.llm_api_key and env.llm_api_key != existing.llm_api_key) or \
+           (env.llm_model and env.llm_model != existing.llm_model):
+            existing.llm_provider = env.llm_provider
+            existing.llm_api_key = env.llm_api_key
+            existing.llm_model = env.llm_model
+            existing.llm_temperature = env.llm_temperature
+            existing.llm_max_tokens = env.llm_max_tokens
+            session.add(existing)
+            session.commit()
+            session.refresh(existing)
+        return _to_schema(existing)
     db_item = AppSetting(
         llm_provider=env.llm_provider,
         llm_api_key=env.llm_api_key,

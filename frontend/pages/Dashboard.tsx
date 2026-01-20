@@ -4,19 +4,35 @@ import { Project } from '../types';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2, ExternalLink, Calendar, Users } from 'lucide-react';
 import Layout from '../components/Layout';
+import { useToast } from '../context/ToastContext';
 
 const Dashboard: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const toast = useToast();
 
   useEffect(() => {
-    setProjects(getProjects());
-  }, []);
+    getProjects()
+      .then(data => {
+        setProjects(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load projects", err);
+        toast.error("Failed to load campaigns. Using cached data if available.");
+        setLoading(false); 
+        // Note: In a real app we might load from localStorage or keep previous state if this was a refresh 
+        // but here on mount initial valid state is empty.
+      });
+  }, [toast]);
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     if (window.confirm('Are you sure you want to delete this campaign?')) {
-        deleteProject(id);
-        setProjects(getProjects());
+        await deleteProject(id);
+        const updated = await getProjects();
+        setProjects(updated);
     }
   };
 
@@ -36,7 +52,14 @@ const Dashboard: React.FC = () => {
         </Link>
       </div>
 
-      {projects.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+            <div className="flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-gray-500 text-sm">Loading campaigns...</p>
+            </div>
+        </div>
+      ) : projects.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center shadow-sm">
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Plus size={32} />
@@ -84,6 +107,12 @@ const Dashboard: React.FC = () => {
                         className="flex-1 text-center py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
                     >
                         View Assets
+                    </Link>
+                    <Link 
+                        to={`/project/${project.id}/edit`}
+                        className="flex-1 text-center py-2 text-sm font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition flex items-center justify-center gap-1"
+                    >
+                        Modify
                     </Link>
                     {project.landingPage && (
                         <a 
