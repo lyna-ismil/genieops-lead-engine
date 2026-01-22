@@ -21,7 +21,24 @@ class User(SQLModel, table=True):
     id: str = Field(default_factory=_uuid, primary_key=True, index=True)
     email: str = Field(index=True, unique=True)
     name: str | None = None
+    hashed_password: str = Field(default="")
     is_active: bool = Field(default=True)
+    created_at: datetime = Field(
+        default_factory=_now,
+        sa_column=Column(DateTime(timezone=True), server_default=func.now()),
+    )
+
+
+class SocialConnection(SQLModel, table=True):
+    __tablename__ = "social_connections"
+
+    id: str = Field(default_factory=_uuid, primary_key=True, index=True)
+    # In a real app, this links to User. For now, MVP can run in single-user mode.
+    user_id: Optional[str] = Field(default=None, index=True)
+    provider: str = Field(default="linkedin", index=True)
+    provider_user_id: str = Field(index=True)
+    access_token: str
+    expires_at: Optional[int] = None
     created_at: datetime = Field(
         default_factory=_now,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
@@ -40,6 +57,8 @@ class Campaign(SQLModel, table=True):
     icp_company_size: str = ""
     icp_pain_points: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     icp_goals: list[str] = Field(default_factory=list, sa_column=Column(JSON))
+    product_context: Optional[dict] = Field(default=None, sa_column=Column(JSON))
+    strategy_summary: Optional[dict] = Field(default=None, sa_column=Column(JSON))
 
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
@@ -67,6 +86,7 @@ class LeadMagnet(SQLModel, table=True):
     format_recommendation: str
     is_selected: bool = Field(default=True)
     idea_payload: Optional[dict] = Field(default=None, sa_column=Column(JSON))
+    strategy_summary: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(
         default_factory=_now,
         sa_column=Column(DateTime(timezone=True), server_default=func.now()),
@@ -98,6 +118,8 @@ class LandingPage(SQLModel, table=True):
     bullets: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     cta: str
     html_content: str
+    background_style: Optional[str] = Field(default="plain_white")
+    theme: str = Field(default="light")
     sections: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     form_schema: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     image_url: Optional[str] = None

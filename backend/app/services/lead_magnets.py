@@ -16,6 +16,7 @@ def _to_schema(db: LeadMagnetDB) -> LeadMagnet:
         format_recommendation=db.format_recommendation,
         is_selected=db.is_selected,
         idea_payload=db.idea_payload,
+        strategy_summary=getattr(db, "strategy_summary", None),
         created_at=db.created_at,
     )
 
@@ -41,6 +42,7 @@ def create_lead_magnet(session: Session, payload: LeadMagnetCreate) -> LeadMagne
         format_recommendation=payload.format_recommendation,
         is_selected=payload.is_selected,
         idea_payload=payload.idea_payload,
+        strategy_summary=payload.strategy_summary,
     )
     session.add(db_item)
     session.commit()

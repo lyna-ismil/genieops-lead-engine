@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { LandingPageConfig, GeneratedAsset, LeadMagnetIdea, FormField } from '../../types';
-import { generateLandingPage, generateHeroImage } from '../../services/gemini';
-import { Loader2, RefreshCw, Smartphone, Monitor, Plus, Trash2 } from 'lucide-react';
+import { LandingPageConfig, GeneratedAsset, LeadMagnetIdea, FormField, ICPProfile, ProductContext } from '../../types';
+import { generateLandingPage, generateHeroImage } from '../../services/llm';
+import { Loader2, RefreshCw, Smartphone, Monitor, Plus, Trash2, Maximize2, X } from 'lucide-react';
 import LandingPageRenderer from '../LandingPageRenderer';
+import SkeletonLoader from '../SkeletonLoader';
 import { useToast } from '../../context/ToastContext';
 
 interface Props {
+  icp: ICPProfile;
   idea: LeadMagnetIdea;
   asset: GeneratedAsset;
   offerType: string;
@@ -14,67 +16,107 @@ interface Props {
   onNext: (config: LandingPageConfig) => void;
   onBack: () => void;
   savedConfig?: LandingPageConfig;
+    primaryColor?: string;
+    productContext?: ProductContext;
 }
 
-const LandingPageStep: React.FC<Props> = ({ idea, asset, offerType, brandVoice, targetConversion, onNext, onBack, savedConfig }) => {
+const LandingPageStep: React.FC<Props> = ({
+    icp,
+    idea,
+    asset,
+    offerType,
+    brandVoice,
+    targetConversion,
+    onNext,
+    onBack,
+    savedConfig,
+    primaryColor,
+    productContext
+}) => {
   const [config, setConfig] = useState<LandingPageConfig | null>(savedConfig || null);
   const [loading, setLoading] = useState(!savedConfig);
   const [regeneratingImage, setRegeneratingImage] = useState(false);
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
+    console.log("LandingPageStep initialized with:", { idea, asset, offerType, brandVoice });
     if (!savedConfig && !config) {
       generate();
     }
-  }, []);
+  }, [idea, asset]);
 
   const generate = async () => {
     setLoading(true);
+    // Reset config to null to ensure loading state shows if retrying
+    if (!savedConfig) setConfig(null); 
+    
     try {
-      const result = await generateLandingPage(idea, asset, undefined, offerType, brandVoice, targetConversion);
+      const result = await generateLandingPage(idea, asset, icp, undefined, offerType, brandVoice, targetConversion, productContext);
       
-      // Ensure arrays are initialized
-      const initialConfig: LandingPageConfig = {
-          ...result,
-          sections: result.sections || [],
-          formSchema: result.formSchema || [
-              { name: "name", label: "Full Name", type: "text", required: true },
-              { name: "email", label: "Email Address", type: "email", required: true }
-          ] // Fallback default fields
-      };
-      
-      setConfig(initialConfig);
-      
-      // Generate Image separately to not block text
-      generateImage(initialConfig);
+      if (result) {
+          // Inject calculator config if applicable
+          if (asset.type === 'calculator' && asset.contentJson) {
+              result.calculatorConfig = asset.contentJson;
+          }
+
+          if (asset.type === 'calculator') {
+              result.imageUrl = null;
+          }
+
+          // Ensure arrays are initialized
+          const initialConfig: LandingPageConfig = {
+              ...result,
+              sections: result.sections || [],
+              formSchema: result.formSchema || [
+                  { name: "name", label: "Full Name", type: "text", required: true },
+                  { name: "email", label: "Email Address", type: "email", required: true }
+              ]
+          };
+          setConfig(initialConfig);
+          if (asset.type !== 'calculator') {
+              generateImage(initialConfig); // Call generateImage with the new config
+          }
+      } else {
+          setConfig(null); 
+      }
     } catch (e) {
-      console.error(e);
+      console.error("Landing page generation error:", e);
       toast.error("Failed to generate landing page content.");
-      // Fallback
-      setConfig({
-        headline: "Error generating page",
-        subheadline: "Please try again",
-        bullets: [],
-        cta: "Retry",
-        htmlContent: "<div>Error</div>",
-        sections: [],
-        formSchema: []
-      } as LandingPageConfig);
+      // Set a flag or specific error state, but here we'll use null config + not loading to trigger a manual retry UI
+      setConfig(null); 
     } finally {
       setLoading(false);
     }
   };
 
   const generateImage = async (currentConfig: LandingPageConfig) => {
+      // Don't generate image if it's a calculator
+      if (asset.type === 'calculator') {
+          setConfig(prev => prev ? { ...prev, imageUrl: undefined } : null);
+          return;
+      }
+
       setRegeneratingImage(true);
       try {
-          const icpStub = { role: "", industry: "", painPoints: [], goals: [], companySize: "" }; 
-          const url = await generateHeroImage(idea, icpStub as any, offerType, brandVoice);
-          setConfig(prev => prev ? { ...prev, imageUrl: url } : null);
+          // This calls the backend which now calls Unsplash
+          const url = await generateHeroImage(idea, icp, offerType, brandVoice);
+          
+          setConfig(prev => {
+              if (!prev) return null;
+              return {
+                  ...prev,
+                  imageUrl: url,
+                  // Ensure background style is respected if the LLM returned it
+                  backgroundStyle: prev.backgroundStyle || 'plain_white'
+              };
+          });
       } catch (e) {
-          console.error("Image generation failed", e);
-          toast.error("Failed to generate hero image.");
+          console.error("Image search failed", e);
+          toast.error("Failed to find stock image. Using fallback.");
+          // Fallback to a gradient pattern if search fails completely
+          setConfig(prev => prev ? { ...prev, imageUrl: undefined } : null);
       } finally {
           setRegeneratingImage(false);
       }
@@ -122,14 +164,80 @@ const LandingPageStep: React.FC<Props> = ({ idea, asset, offerType, brandVoice, 
       }
   };
 
-  if (loading || !config) {
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
-        <p className="text-gray-600 font-medium">Drafting high-conversion landing page...</p>
-        <p className="text-gray-400 text-sm mt-2">Writing copy • Designing layout • Generating assets</p>
-      </div>
+            <div className="py-8">
+                <SkeletonLoader />
+            </div>
     );
+  }
+
+  if (!config) {
+      return (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="bg-red-50 p-4 rounded-full mb-4">
+                  <RefreshCw className="text-red-500" size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Generation Failed</h3>
+              <p className="text-gray-600 mb-6 max-w-md">We couldn't generate your landing page this time. Please try again or check your inputs.</p>
+              <button 
+                  onClick={generate}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition flex items-center gap-2"
+              >
+                  <RefreshCw size={16} /> Retry Generation
+              </button>
+          </div>
+      );
+  }
+
+  // Full Screen Overlay
+  if (isFullScreen) {
+      return (
+          <div className="fixed inset-0 z-50 bg-gray-100 flex flex-col animate-in fade-in duration-200">
+              <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm shrink-0">
+                  <div className="flex items-center gap-4">
+                      <span className="text-sm font-bold text-gray-800">Full Screen Preview</span>
+                      <div className="flex bg-gray-100 p-1 rounded-lg">
+                          <button 
+                              onClick={() => setViewMode('desktop')}
+                              className={`p-1.5 rounded ${viewMode === 'desktop' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+                              title="Desktop View"
+                          >
+                              <Monitor size={16} />
+                          </button>
+                          <button 
+                              onClick={() => setViewMode('mobile')}
+                              className={`p-1.5 rounded ${viewMode === 'mobile' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+                              title="Mobile View"
+                          >
+                              <Smartphone size={16} />
+                          </button>
+                      </div>
+                  </div>
+                  <button 
+                      onClick={() => setIsFullScreen(false)}
+                      className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-gray-800 transition"
+                      title="Exit Full Screen"
+                  >
+                      <X size={20} />
+                  </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-100/50">
+                   <div className={`mx-auto bg-white shadow-2xl origin-top transition-all duration-300 ${viewMode === 'mobile' ? 'max-w-[375px] min-h-[812px] rounded-[3rem] border-[8px] border-gray-900 overflow-hidden ring-1 ring-gray-900/5' : 'w-full min-h-full rounded-lg'}`}>
+                                             <LandingPageRenderer
+                                                 config={config}
+                                                 mode={viewMode}
+                                                 brand={{
+                                                     primaryColor: productContext?.primaryColor || '#2563eb',
+                                                     fontStyle: productContext?.fontStyle,
+                                                     logoUrl: productContext?.logoUrl
+                                                 }}
+                                                 primaryColor={productContext?.primaryColor || '#2563eb'}
+                                             />
+                   </div>
+              </div>
+          </div>
+      );
   }
 
   return (
@@ -218,8 +326,8 @@ const LandingPageStep: React.FC<Props> = ({ idea, asset, offerType, brandVoice, 
             </div>
 
             {/* Hero Image */}
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-                 <div className="flex justify-between items-center mb-4">
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+                 <div className="flex justify-between items-center mb-4 relative z-10">
                      <h3 className="font-bold text-gray-800">Hero Image</h3>
                      <div className="flex gap-2">
                          <label className="text-xs flex items-center gap-1 text-gray-600 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded cursor-pointer transition">
@@ -236,11 +344,25 @@ const LandingPageStep: React.FC<Props> = ({ idea, asset, offerType, brandVoice, 
                          </button>
                      </div>
                  </div>
-                 {config.imageUrl ? (
-                     <img src={config.imageUrl} alt="Hero Preview" className="w-full h-32 object-cover rounded-lg border border-gray-200" />
-                 ) : (
-                     <div className="w-full h-32 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">No Image</div>
-                 )}
+                 
+                 <div className="relative w-full h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                     {regeneratingImage && (
+                        <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-200">
+                             <Loader2 size={24} className="text-blue-600 animate-spin mb-2" />
+                             <span className="text-xs font-semibold text-blue-600">Generating Visuals...</span>
+                        </div>
+                     )}
+                     
+                     {config.imageUrl ? (
+                         <img src={config.imageUrl} alt="Hero Preview" className="w-full h-full object-cover" />
+                     ) : (
+                         <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-inner">
+                             <div className="text-center text-white/40">
+                                <span className="font-bold text-sm uppercase tracking-wider block">No Image</span>
+                             </div>
+                         </div>
+                     )}
+                 </div>
             </div>
 
         </div>
@@ -250,26 +372,45 @@ const LandingPageStep: React.FC<Props> = ({ idea, asset, offerType, brandVoice, 
             {/* Toolbar */}
             <div className="h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Live Preview</span>
-                <div className="flex bg-gray-100 p-1 rounded-lg">
+                <div className="flex items-center gap-2">
                     <button 
-                        onClick={() => setViewMode('desktop')}
-                        className={`p-1.5 rounded ${viewMode === 'desktop' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+                        onClick={() => setIsFullScreen(true)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-gray-50 rounded transition"
+                        title="Enter Full Screen"
                     >
-                        <Monitor size={16} />
+                        <Maximize2 size={16} />
                     </button>
-                    <button 
-                        onClick={() => setViewMode('mobile')}
-                        className={`p-1.5 rounded ${viewMode === 'mobile' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                        <Smartphone size={16} />
-                    </button>
+                    <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                    <div className="flex bg-gray-100 p-1 rounded-lg">
+                        <button 
+                            onClick={() => setViewMode('desktop')}
+                            className={`p-1.5 rounded ${viewMode === 'desktop' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            <Monitor size={16} />
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('mobile')}
+                            className={`p-1.5 rounded ${viewMode === 'mobile' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            <Smartphone size={16} />
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Renderer Container */}
             <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
                  <div className={`mx-auto origin-top transition-all duration-300 ${viewMode === 'mobile' ? 'max-w-[375px]' : 'w-full'}`}>
-                     <LandingPageRenderer config={config} mode={viewMode} />
+                                         <LandingPageRenderer
+                                             config={config}
+                                             mode={viewMode}
+                                             brand={{
+                                                 primaryColor: productContext?.primaryColor || '#2563eb',
+                                                 fontStyle: productContext?.fontStyle,
+                                                 logoUrl: productContext?.logoUrl
+                                             }}
+                                             primaryColor={productContext?.primaryColor || '#2563eb'}
+                                         />
                  </div>
             </div>
         </div>

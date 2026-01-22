@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ICPProfile, LeadMagnetIdea } from '../../types';
-import { generateLeadMagnetIdeas } from '../../services/gemini';
+import { ICPProfile, LeadMagnetIdea, ProductContext } from '../../types';
+import { generateLeadMagnetIdeas } from '../../services/llm';
 import { Loader2, CheckCircle2, TrendingUp, RefreshCw } from 'lucide-react';
 
 interface Props {
   icp: ICPProfile;
+  productContext?: ProductContext;
   offerType?: string;
   brandVoice?: string;
   targetConversion?: string;
@@ -13,7 +14,7 @@ interface Props {
   savedIdea?: LeadMagnetIdea;
 }
 
-const IdeationStep: React.FC<Props> = ({ icp, offerType, brandVoice, targetConversion, onNext, onBack, savedIdea }) => {
+const IdeationStep: React.FC<Props> = ({ icp, productContext, offerType, brandVoice, targetConversion, onNext, onBack, savedIdea }) => {
   const [ideas, setIdeas] = useState<LeadMagnetIdea[]>(savedIdea ? [savedIdea] : []);
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(savedIdea?.id || null);
@@ -23,7 +24,7 @@ const IdeationStep: React.FC<Props> = ({ icp, offerType, brandVoice, targetConve
     setLoading(true);
     setError(null);
     try {
-      const generated = await generateLeadMagnetIdeas(icp, offerType, brandVoice, targetConversion);
+      const generated = await generateLeadMagnetIdeas(icp, offerType, brandVoice, targetConversion, productContext);
       // Ensure IDs
       const withIds = generated.map((g, i) => ({ ...g, id: g.id || `idea-${Date.now()}-${i}` }));
       setIdeas(withIds);

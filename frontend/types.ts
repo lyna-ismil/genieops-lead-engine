@@ -6,6 +6,50 @@ export interface ICPProfile {
   companySize: string;
 }
 
+export interface BrandIdentity {
+  colors: {
+    primary: string;
+    secondary?: string;
+  };
+  fonts: {
+    heading: string;
+    body: string;
+  };
+  shape: {
+    radiusSm: string;
+    radiusMd: string;
+  };
+}
+
+export interface VoiceProfile {
+  sentenceLength: 'short' | 'long' | string;
+  jargonLevel: 'tech' | 'simple' | string;
+  bannedWords: string[];
+}
+
+export interface ProductContext {
+  uniqueMechanism: string;
+  competitorContrast: string;
+  companyName?: string;
+  productDescription?: string;
+  mainBenefit?: string;
+  websiteUrl?: string;
+  toneGuidelines?: string[];
+  primaryColor: string;
+  fontStyle: 'serif' | 'sans' | 'mono';
+  designVibe: 'minimal' | 'bold' | 'corporate';
+  logoUrl: string;
+  voiceProfile?: VoiceProfile;
+}
+
+export interface OfferStack {
+  coreOffer: string;
+  price: string;
+  valueAnchor: string;
+  guarantee: string;
+  bonuses: string[];
+}
+
 export interface LeadMagnetIdea {
   id: string;
   title: string;
@@ -14,18 +58,33 @@ export interface LeadMagnetIdea {
   valuePromise: string;
   conversionScore: number;
   formatRecommendation: string;
+  strategySummary?: {
+    objection: string;
+    angle: string;
+    hook: string;
+    mechanism: string;
+  };
 }
 
 export interface GeneratedAsset {
   content: string; // Markdown or pseudo-code
   type: string;
+  contentJson?: any; // For calculator config etc
+}
+
+export interface SectionItem {
+  title: string;
+  description: string;
+  icon?: string;
 }
 
 export interface Section {
   id: string;
   title: string;
-  body: string; // HTML allowed here
-  variant: 'feature' | 'testimonial' | 'faq' | 'hero' | 'generic';
+  subtitle?: string;
+  body?: string; // kept for backward compatibility
+  items?: SectionItem[];
+  variant: 'feature' | 'testimonial' | 'faq' | 'hero' | 'generic' | 'bento_grid' | 'split_feature' | 'feature_cards';
 }
 
 export interface FormField {
@@ -42,6 +101,8 @@ export interface LandingPageConfig {
   cta: string;
   htmlContent: string; // Full HTML string as fallback or container
   imageUrl?: string;
+  backgroundStyle?: 'tech_grid' | 'clean_dots' | 'soft_aurora' | 'plain_white';
+  theme?: 'light' | 'dark';
   slug?: string;
   
   // New Structured Fields
@@ -50,6 +111,7 @@ export interface LandingPageConfig {
   socialProof?: { logoUrl?: string; quote?: string; author?: string }[];
   faq?: { question: string; answer: string }[];
   rawImagePrompt?: string; 
+  calculatorConfig?: any; // Config for CalculatorWidget
 }
 
 export interface Email {
@@ -93,6 +155,7 @@ export interface Project {
   updatedAt?: string;
   status: 'draft' | 'published';
   icp: ICPProfile;
+  productContext?: ProductContext;
   offerType?: string;
   brandVoice?: string;
   targetConversion?: string;
@@ -101,11 +164,7 @@ export interface Project {
   landingPage?: LandingPageConfig;
   emailSequence?: Email[];
   linkedInPost?: string;
-  upgradeOffer?: {
-    positioning: string;
-    offerCopy: string;
-    cta: string;
-  };
+  upgradeOffer?: OfferStack;
 }
 
 export interface PersonaSummary {
@@ -114,7 +173,7 @@ export interface PersonaSummary {
 }
 
 
-// Gemini AI Response Schemas
+// LLM Response Schemas
 export enum AgentType {
   IDEATION = 'ideation',
   ASSET = 'asset',

@@ -8,7 +8,7 @@ import LandingPageStep from '../components/Wizard/LandingPageStep';
 import NurtureStep from '../components/Wizard/NurtureStep';
 import SocialStep from '../components/Wizard/SocialStep';
 import CampaignSummaryPanel from '../components/Wizard/CampaignSummaryPanel';
-import { ICPProfile, LeadMagnetIdea, GeneratedAsset, LandingPageConfig, Email, Project, PersonaSummary } from '../types';
+import { ICPProfile, LeadMagnetIdea, GeneratedAsset, LandingPageConfig, Email, Project, PersonaSummary, ProductContext, OfferStack } from '../types';
 import { createProject, updateProject, getProjectById } from '../services/store';
 import { Loader2, CheckCircle, CircleDot, Circle } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
@@ -39,6 +39,7 @@ const CreateFlow: React.FC = () => {
   const [brandVoice, setBrandVoice] = useState<string>('');
   const [targetConversion, setTargetConversion] = useState<string>('');
   const [personaSummary, setPersonaSummary] = useState<PersonaSummary | undefined>(undefined);
+  const [productContext, setProductContext] = useState<ProductContext | null>(null);
 
   // Effect to load existing project if ID is present
   useEffect(() => {
@@ -51,6 +52,7 @@ const CreateFlow: React.FC = () => {
                 setOfferType(project.offerType || '');
                 setBrandVoice(project.brandVoice || '');
                 setTargetConversion(project.targetConversion || '');
+                setProductContext(project.productContext || null);
                 
                 if (project.selectedIdea) setSelectedIdea(project.selectedIdea);
                 if (project.asset) setAsset(project.asset);
@@ -81,7 +83,7 @@ const CreateFlow: React.FC = () => {
   const [asset, setAsset] = useState<GeneratedAsset | null>(null);
   const [landingPage, setLandingPage] = useState<LandingPageConfig | null>(null);
   const [emails, setEmails] = useState<Email[]>([]);
-  const [upgradeOffer, setUpgradeOffer] = useState<any>(null);
+    const [upgradeOffer, setUpgradeOffer] = useState<OfferStack | null>(null);
   const [linkedInPost, setLinkedInPost] = useState<string>('');
   
   const handleNext = () => setCurrentStep(p => Math.min(p + 1, steps.length - 1));
@@ -108,6 +110,7 @@ const CreateFlow: React.FC = () => {
           createdAt: new Date().toISOString(),
           status: 'draft',
           icp: icp!, 
+          productContext: productContext || undefined,
           offerType,
           brandVoice,
           targetConversion,
@@ -122,8 +125,9 @@ const CreateFlow: React.FC = () => {
 
   const currentProject = icp ? buildProjectPayload() : { icp: { role: '', industry: '', painPoints: [], goals: [], companySize: '' }, id: '', name: '', createdAt: '', status: 'draft' } as Project;
 
-  const handleAudienceSubmit = async (data: ICPProfile, offer: string, voice: string, conversion: string, summary?: PersonaSummary) => {
+  const handleAudienceSubmit = async (data: ICPProfile, prodContext: ProductContext, offer: string, voice: string, conversion: string, summary?: PersonaSummary) => {
       setIcp(data);
+      setProductContext(prodContext);
       setOfferType(offer);
       setBrandVoice(voice);
       setTargetConversion(conversion);
@@ -193,7 +197,7 @@ const CreateFlow: React.FC = () => {
       } finally { setSaving(false); }
   };
 
-  const handleNurtureSave = async (e: Email[], u: any) => {
+    const handleNurtureSave = async (e: Email[], u: OfferStack | null) => {
       setEmails(e);
       setUpgradeOffer(u);
       if (!projectId) return;
@@ -240,6 +244,7 @@ const CreateFlow: React.FC = () => {
       case 1:
         return icp ? <IdeationStep 
             icp={icp} 
+                        productContext={productContext || undefined}
             offerType={offerType}
             brandVoice={brandVoice}
             targetConversion={targetConversion}
@@ -253,12 +258,14 @@ const CreateFlow: React.FC = () => {
             idea={selectedIdea} 
             offerType={offerType}
             brandVoice={brandVoice}
+                        productContext={productContext || undefined}
             onNext={handleAssetSave} 
             onBack={handleBack} 
             savedAsset={asset || undefined} 
         /> : null;
       case 3:
-        return selectedIdea && asset ? <LandingPageStep 
+        return selectedIdea && asset && icp ? <LandingPageStep 
+            icp={icp}
             idea={selectedIdea} 
             asset={asset} 
             offerType={offerType}
@@ -267,12 +274,17 @@ const CreateFlow: React.FC = () => {
             onNext={handleLandingPageSave} 
             onBack={handleBack} 
             savedConfig={landingPage || undefined} 
+                        primaryColor={productContext?.primaryColor}
+                        productContext={productContext || undefined}
         /> : null;
       case 4:
         return selectedIdea ? <NurtureStep 
             idea={selectedIdea} 
+                        asset={asset || undefined}
+                        offerType={offerType}
             brandVoice={brandVoice}
             targetConversion={targetConversion}
+                        productContext={productContext || undefined}
             onNext={handleNurtureSave} 
             onBack={handleBack} 
             savedEmails={emails} 
@@ -282,6 +294,7 @@ const CreateFlow: React.FC = () => {
             idea={selectedIdea} 
             landingPage={landingPage} 
             brandVoice={brandVoice}
+                        productContext={productContext || undefined}
             onSave={handleFinish} 
             onBack={handleBack} 
             savedPost={linkedInPost} 

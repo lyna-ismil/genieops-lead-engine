@@ -1,8 +1,9 @@
 from __future__ import annotations
 from datetime import datetime
 from enum import Enum
+import re
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class CampaignStatus(str, Enum):
@@ -27,6 +28,8 @@ class LeadMagnetIdea(BaseModel):
     value_promise: str = Field(alias="valuePromise")
     conversion_score: float = Field(alias="conversionScore")
     format_recommendation: str = Field(alias="formatRecommendation")
+    why_it_works: Optional[str] = Field(default=None, alias="whyItWorks")
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
     is_selected: Optional[bool] = None
     idea_payload: Optional[dict] = None
 
@@ -40,13 +43,81 @@ class ICPProfile(BaseModel):
     goals: list[str] = Field(default_factory=list)
 
 
+class VoiceProfile(BaseModel):
+    model_config = {"populate_by_name": True}
+    # short/long
+    sentence_length: str = Field(default="", alias="sentenceLength")
+    # tech/simple
+    jargon_level: str = Field(default="", alias="jargonLevel")
+    # clichés found on the site
+    banned_words: list[str] = Field(default_factory=list, alias="bannedWords")
+
+
+class ProductContext(BaseModel):
+    model_config = {"populate_by_name": True}
+    unique_mechanism: str = Field(default="", alias="uniqueMechanism")
+    competitor_contrast: str = Field(default="", alias="competitorContrast")
+    company_name: Optional[str] = Field(default=None, alias="companyName")
+    product_description: Optional[str] = Field(default=None, alias="productDescription")
+    main_benefit: Optional[str] = Field(default=None, alias="mainBenefit")
+    website_url: Optional[str] = Field(default=None, alias="websiteUrl")
+    tone_guidelines: list[str] = Field(default_factory=list, alias="toneGuidelines")
+    primary_color: Optional[str] = Field(default=None, alias="primaryColor")
+    font_style: Optional[str] = Field(default=None, alias="fontStyle")
+    design_vibe: Optional[str] = Field(default=None, alias="designVibe")
+    logo_url: Optional[str] = Field(default=None, alias="logoUrl")
+    voice_profile: Optional[VoiceProfile] = Field(default=None, alias="voiceProfile")
+
+
+class OfferStack(BaseModel):
+    model_config = {"populate_by_name": True}
+    core_offer: str = Field(alias="coreOffer")
+    price: str  # e.g., "$97"
+    value_anchor: str = Field(alias="valueAnchor")  # e.g., "$500"
+    guarantee: str  # Risk reversal statement
+    bonuses: list[str] = Field(default_factory=list)
+
+    @field_validator("bonuses", mode="before")
+    @classmethod
+    def _normalize_bonuses(cls, value):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            if "\n" in value:
+                parts = value.split("\n")
+            else:
+                parts = value.split(",")
+            return [item.strip() for item in parts if item.strip()]
+        return value
+
+
+class WebsiteAnalyzeRequest(BaseModel):
+    url: str
+
+
+class WebsiteAnalyzeResponse(BaseModel):
+    model_config = {"populate_by_name": True}
+    company_name: Optional[str] = Field(default=None, alias="companyName")
+    product_description: Optional[str] = Field(default=None, alias="productDescription")
+    main_benefit: Optional[str] = Field(default=None, alias="mainBenefit")
+    unique_mechanism: Optional[str] = Field(default=None, alias="uniqueMechanism")
+    competitor_contrast: Optional[str] = Field(default=None, alias="competitorContrast")
+    primary_color: Optional[str] = Field(default=None, alias="primaryColor")
+    font_style: Optional[str] = Field(default=None, alias="fontStyle")
+    logo_url: Optional[str] = Field(default=None, alias="logoUrl")
+    design_vibe: Optional[str] = Field(default=None, alias="designVibe")
+    voice_profile: Optional[VoiceProfile] = Field(default=None, alias="voiceProfile")
+
+
 class CampaignBase(BaseModel):
     name: str
     status: CampaignStatus = CampaignStatus.draft
     icp: ICPProfile
+    product_context: Optional[ProductContext] = Field(default=None, alias="productContext")
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
     target_conversion: Optional[str] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
 
 
 class CampaignCreate(CampaignBase):
@@ -60,6 +131,7 @@ class CampaignUpdate(BaseModel):
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
     target_conversion: Optional[str] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
 
 
 class Campaign(CampaignBase):
@@ -77,6 +149,7 @@ class LeadMagnetBase(BaseModel):
     format_recommendation: str
     is_selected: bool = True
     idea_payload: Optional[dict] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
 
 
 class LeadMagnetCreate(LeadMagnetBase):
@@ -92,6 +165,7 @@ class LeadMagnetUpdate(BaseModel):
     format_recommendation: Optional[str] = None
     is_selected: Optional[bool] = None
     idea_payload: Optional[dict] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
 
 
 class LeadMagnet(LeadMagnetBase):
@@ -121,11 +195,19 @@ class AssetCreate(BaseModel):
     content_json: Optional[dict] = None
 
 
+class SectionItem(BaseModel):
+    title: str
+    description: str
+    icon: Optional[str] = None
+
+
 class Section(BaseModel):
     id: str
     title: str
-    body: str
-    variant: str = "generic"  # feature, testimonial, faq, hero, generic
+    subtitle: Optional[str] = None
+    body: Optional[str] = None
+    items: list[SectionItem] = Field(default_factory=list)
+    variant: str = "generic"  # feature, testimonial, faq, hero, generic, bento_grid, split_feature, feature_cards
 
 
 class FormFieldModel(BaseModel):
@@ -145,6 +227,8 @@ class LandingPage(BaseModel):
     cta: str
     html_content: str
     image_url: Optional[str] = None
+    background_style: Optional[str] = None
+    theme: Optional[str] = None
     sections: list[Section] = Field(default_factory=list)
     form_schema: list[FormFieldModel] = Field(default_factory=list)
     social_proof: list[dict] = Field(default_factory=list)
@@ -160,11 +244,18 @@ class LandingPageConfig(BaseModel):
     cta: str
     html_content: str = Field(alias="htmlContent")
     image_url: Optional[str] = Field(default=None, alias="imageUrl")
+    background_style: Optional[str] = Field(
+        default=None,
+        alias="backgroundStyle",
+        description="The visual background style. Must be one of: 'tech_grid', 'clean_dots', 'soft_aurora', 'plain_white'"
+    )
+    theme: Optional[str] = Field(default=None, description="Theme mode: 'light' or 'dark'")
     sections: list[Section] = Field(default_factory=list)
     form_schema: list[FormFieldModel] = Field(default_factory=list, alias="formSchema")
     social_proof: list[dict] = Field(default_factory=list, alias="socialProof")
     faq: list[dict] = Field(default_factory=list)
     raw_image_prompt: Optional[str] = Field(default=None, alias="rawImagePrompt")
+    calculator_config: Optional[dict] = Field(default=None, alias="calculatorConfig")
 
 
 class LandingPageCreate(BaseModel):
@@ -176,6 +267,8 @@ class LandingPageCreate(BaseModel):
     cta: str
     html_content: str
     image_url: Optional[str] = None
+    background_style: Optional[str] = Field(default=None, alias="backgroundStyle")
+    theme: Optional[str] = None
     sections: list[Section] = Field(default_factory=list)
     form_schema: list[FormFieldModel] = Field(default_factory=list)
     social_proof: list[dict] = Field(default_factory=list)
@@ -185,6 +278,7 @@ class LandingPageCreate(BaseModel):
 
 class IdeationRequest(BaseModel):
     icp: ICPProfile
+    product_context: Optional[ProductContext] = None
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
     target_conversion: Optional[str] = None
@@ -194,6 +288,7 @@ class IdeationRequest(BaseModel):
 class AssetRequest(BaseModel):
     idea: LeadMagnetIdea
     icp: ICPProfile
+    product_context: Optional[ProductContext] = None
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
     target_conversion: Optional[str] = None
@@ -203,6 +298,8 @@ class AssetRequest(BaseModel):
 class LandingPageRequest(BaseModel):
     idea: LeadMagnetIdea
     asset: GeneratedAsset
+    icp: ICPProfile
+    product_context: Optional[ProductContext] = None
     image_url: Optional[str] = None
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
@@ -216,6 +313,9 @@ class ThankYouRequest(BaseModel):
 
 class NurtureRequest(BaseModel):
     idea: LeadMagnetIdea
+    asset: Optional[GeneratedAsset] = None
+    product_context: Optional[ProductContext] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
     target_conversion: Optional[str] = None
@@ -224,13 +324,33 @@ class NurtureRequest(BaseModel):
 
 class UpgradeOfferRequest(BaseModel):
     idea: LeadMagnetIdea
-    emails: list[Email]
+    emails: list[dict]
+    icp: Optional[ICPProfile] = None
+    product_context: Optional[ProductContext] = None
+    offer_type: Optional[str] = None
+    brand_voice: Optional[str] = None
+    target_conversion: Optional[str] = None
+
+
+class LinkedInLandingPage(BaseModel):
+    model_config = {"populate_by_name": True}
+    headline: Optional[str] = None
+    bullets: list[str] = Field(default_factory=list)
+    cta: Optional[str] = None
+    image_url: Optional[str] = Field(default=None, alias="imageUrl")
+    slug: Optional[str] = None
 
 
 class LinkedInRequest(BaseModel):
     idea: LeadMagnetIdea
-    landing_page: LandingPageConfig
+    landing_page: LinkedInLandingPage
+    product_context: Optional[ProductContext] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
     brand_voice: Optional[str] = None
+
+
+class LinkedInParseRequest(BaseModel):
+    content: str
 
 
 
@@ -241,12 +361,35 @@ class HeroImageRequest(BaseModel):
     offer_type: Optional[str] = None
 
 
+class ChatRequest(BaseModel):
+    message: str
+    project_id: Optional[str] = None
+
+
 class Email(BaseModel):
-    id: str
-    subject: str
-    body: str
-    delay: str
-    intent: str
+    model_config = {"populate_by_name": True}
+    id: Optional[str] = None
+    subject: Optional[str] = ""
+    body: Optional[str] = ""
+    delay: Optional[str] = "Immediate"
+    intent: Optional[str] = ""
+
+    @field_validator("delay", mode="before")
+    @classmethod
+    def _normalize_delay(cls, value):
+        if value is None:
+            return "Immediate"
+        if isinstance(value, (int, float)):
+            return f"Day {int(value)}"
+        text = str(value).strip()
+        if not text:
+            return "Immediate"
+        if "immediate" in text.lower():
+            return "Immediate"
+        match = re.search(r"(\d+)", text)
+        if match:
+            return f"Day {int(match.group(1))}"
+        return text
 
 
 class NurtureSequenceBase(BaseModel):
@@ -394,34 +537,62 @@ class SettingsUpdate(BaseModel):
     email_from_name: Optional[str] = None
 
 
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    name: Optional[str] = None
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserPublic(BaseModel):
+    id: str
+    email: EmailStr
+    name: Optional[str] = None
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user: UserPublic
+
+
 class ProjectCreate(BaseModel):
+    model_config = {"populate_by_name": True}
     name: str
     status: CampaignStatus = CampaignStatus.draft
     icp: ICPProfile
+    product_context: Optional[ProductContext] = Field(default=None, alias="productContext")
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
     target_conversion: Optional[str] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
     selected_idea: Optional[LeadMagnetBase] = None
     asset: Optional[AssetCreate] = None
     landing_page: Optional[LandingPageCreate] = None
     email_sequence: Optional[EmailSequenceCreate] = None
     linked_in_post: Optional[str] = None
-    upgrade_offer: Optional[dict] = None
+    upgrade_offer: Optional[OfferStack] = None
 
 
 class ProjectUpdate(BaseModel):
+    model_config = {"populate_by_name": True}
     name: Optional[str] = None
     status: Optional[CampaignStatus] = None
     icp: Optional[ICPProfile] = None
+    product_context: Optional[ProductContext] = Field(default=None, alias="productContext")
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
     target_conversion: Optional[str] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
     selected_idea: Optional[LeadMagnetBase] = None
     asset: Optional[AssetCreate] = None
     landing_page: Optional[LandingPageCreate] = None
     email_sequence: Optional[EmailSequenceCreate] = None
     linked_in_post: Optional[str] = None
-    upgrade_offer: Optional[dict] = None
+    upgrade_offer: Optional[OfferStack] = None
 
 
 class ProjectSummary(BaseModel):
@@ -438,15 +609,17 @@ class ProjectView(BaseModel):
     created_at: datetime
     status: CampaignStatus
     icp: ICPProfile
+    product_context: Optional[ProductContext] = Field(default=None, alias="productContext")
     offer_type: Optional[str] = None
     brand_voice: Optional[str] = None
     target_conversion: Optional[str] = None
+    strategy_summary: Optional[dict] = Field(default=None, alias="strategySummary")
     selected_idea: Optional[LeadMagnet] = None
     asset: Optional[Asset] = None
     landing_page: Optional[LandingPage] = None
     email_sequence: Optional[EmailSequence] = None
     linked_in_post: Optional[str] = None
-    upgrade_offer: Optional[dict] = None
+    upgrade_offer: Optional[OfferStack] = None
 
 
 class PersonaSummary(BaseModel):

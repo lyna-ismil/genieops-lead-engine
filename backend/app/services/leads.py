@@ -2,11 +2,10 @@ from __future__ import annotations
 from datetime import datetime
 from sqlmodel import Session
 from app.models.db import Lead as LeadDB, EmailLog as EmailLogDB
-from app.models.schemas import Lead, LeadCreate, EmailLog
-from app.services.email_service import enqueue_sequence_for_lead
+from app.models.schemas import LeadCreate, EmailLog
 
 
-def create_lead(session: Session, payload: LeadCreate) -> Lead:
+def create_lead(session: Session, payload: LeadCreate) -> LeadDB:
     db_item = LeadDB(
         campaign_id=payload.campaign_id,
         lead_magnet_id=payload.lead_magnet_id,
@@ -18,17 +17,7 @@ def create_lead(session: Session, payload: LeadCreate) -> Lead:
     session.add(db_item)
     session.commit()
     session.refresh(db_item)
-    enqueue_sequence_for_lead(session, db_item)
-    return Lead(
-        id=db_item.id,
-        landing_page_id=db_item.landing_page_id,
-        campaign_id=db_item.campaign_id,
-        lead_magnet_id=db_item.lead_magnet_id,
-        email=db_item.email,
-        name=db_item.name,
-        company=db_item.company,
-        created_at=db_item.created_at,
-    )
+    return db_item
 
 
 def create_email_log(session: Session, lead_id: str, subject: str, body: str) -> EmailLog:

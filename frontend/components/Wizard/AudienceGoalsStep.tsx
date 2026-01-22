@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { ICPProfile, PersonaSummary } from '../../types';
+import { ICPProfile, PersonaSummary, ProductContext } from '../../types';
 import { Sparkles, Target, Zap, MessageSquare } from 'lucide-react';
-import { generatePersonaSummary } from '../../services/gemini';
+import { analyzeWebsite, generatePersonaSummary } from '../../services/llm';
 import { useToast } from '../../context/ToastContext';
 
 interface Props {
-  onNext: (icp: ICPProfile, offerType: string, brandVoice: string, targetConversion: string, summary?: PersonaSummary) => void;
+  onNext: (icp: ICPProfile, productContext: ProductContext, offerType: string, brandVoice: string, targetConversion: string, summary?: PersonaSummary) => void;
   initialData?: ICPProfile;
   initialOfferType?: string;
   initialBrandVoice?: string;
@@ -26,12 +26,27 @@ const AudienceGoalsStep: React.FC<Props> = ({ onNext, initialData, initialOfferT
     painPoints: [''],
     goals: ['']
   });
+  const [productContext, setProductContext] = useState<ProductContext>({
+    uniqueMechanism: '',
+    competitorContrast: '',
+    companyName: '',
+    productDescription: '',
+    mainBenefit: '',
+    websiteUrl: '',
+    toneGuidelines: [],
+    primaryColor: '',
+    fontStyle: 'sans',
+    designVibe: 'minimal',
+    logoUrl: '',
+    voiceProfile: undefined
+  });
   const [offerType, setOfferType] = useState(initialOfferType || '');
   const [brandVoice, setBrandVoice] = useState(initialBrandVoice || '');
   const [targetConversion, setTargetConversion] = useState(initialTargetConversion || '');
   
   const [isGenerating, setIsGenerating] = useState(false);
   const [personaSummary, setPersonaSummary] = useState<PersonaSummary | null>(null);
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   const handleChange = (field: keyof ICPProfile, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -65,15 +80,45 @@ const AudienceGoalsStep: React.FC<Props> = ({ onNext, initialData, initialOfferT
           setIsGenerating(false);
       }
   };
+
+    const handleAutoFill = async () => {
+      if (!productContext.websiteUrl) {
+        toast.error("Please enter a website URL first.");
+        return;
+      }
+      setIsAutoFilling(true);
+      try {
+        const result = await analyzeWebsite(productContext.websiteUrl);
+        setProductContext(prev => ({
+          ...prev,
+          companyName: result.companyName || prev.companyName,
+          productDescription: result.productDescription || prev.productDescription,
+          mainBenefit: result.mainBenefit || prev.mainBenefit,
+            uniqueMechanism: result.uniqueMechanism || prev.uniqueMechanism,
+            competitorContrast: result.competitorContrast || prev.competitorContrast,
+            primaryColor: result.primaryColor || prev.primaryColor,
+            fontStyle: result.fontStyle || prev.fontStyle,
+            designVibe: result.designVibe || prev.designVibe,
+            logoUrl: result.logoUrl || prev.logoUrl,
+            voiceProfile: result.voiceProfile || prev.voiceProfile
+        }));
+        toast.success("Auto-fill complete!");
+      } catch (e) {
+        console.error(e);
+        toast.error("Auto-fill failed. Please try again.");
+      } finally {
+        setIsAutoFilling(false);
+      }
+    };
   
   const handleContinue = () => {
       if (personaSummary) {
-          onNext(formData, offerType, brandVoice, targetConversion, personaSummary);
+          onNext(formData, productContext, offerType, brandVoice, targetConversion, personaSummary);
       } else {
           // If they skipped generation or we failed, strictly proceed but maybe warn?
           // We'll just generate on next if needed, or better, force generation?
           // For now, let's just proceed.
-           onNext(formData, offerType, brandVoice, targetConversion);
+           onNext(formData, productContext, offerType, brandVoice, targetConversion);
       }
   };
 
@@ -161,6 +206,96 @@ const AudienceGoalsStep: React.FC<Props> = ({ onNext, initialData, initialOfferT
                 <option value="">Select Voice...</option>
                 {VOICES.map(v => <option key={v} value={v}>{v}</option>)}
             </select>
+          </div>
+        </div>
+
+        {/* Product Context Section */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">Product Context (Optional)</h3>
+
+          {/* Company Name */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+            <input
+              type="text"
+              value={productContext.companyName}
+              onChange={e => setProductContext(prev => ({ ...prev, companyName: e.target.value }))}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              placeholder="e.g. Acme Analytics"
+            />
+          </div>
+
+          {/* Product Description */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
+            <textarea
+              value={productContext.productDescription}
+              onChange={e => setProductContext(prev => ({ ...prev, productDescription: e.target.value }))}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              rows={3}
+              placeholder="What do you sell and who is it for?"
+            />
+          </div>
+
+          {/* Main Benefit */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Main Benefit</label>
+            <input
+              type="text"
+              value={productContext.mainBenefit}
+              onChange={e => setProductContext(prev => ({ ...prev, mainBenefit: e.target.value }))}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              placeholder="e.g. Cut onboarding time in half"
+            />
+          </div>
+          
+          {/* Unique Mechanism */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Unique Mechanism / Secret Sauce</label>
+            <input
+              type="text"
+              value={productContext.uniqueMechanism}
+              onChange={e => setProductContext(prev => ({ ...prev, uniqueMechanism: e.target.value }))}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              placeholder="e.g. AI-powered lead scoring algorithm"
+            />
+            <p className="text-xs text-gray-400 mt-1">What is the specific method, algorithm, or framework you use?</p>
+          </div>
+
+          {/* Competitor Contrast */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Competitor Contrast</label>
+            <input
+              type="text"
+              value={productContext.competitorContrast}
+              onChange={e => setProductContext(prev => ({ ...prev, competitorContrast: e.target.value }))}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              placeholder="e.g. Unlike HubSpot, we focus on micro-SaaS"
+            />
+            <p className="text-xs text-gray-400 mt-1">Why us vs them?</p>
+          </div>
+
+          {/* Website URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={productContext.websiteUrl}
+                onChange={e => setProductContext(prev => ({ ...prev, websiteUrl: e.target.value }))}
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                placeholder="https://yourwebsite.com"
+              />
+              <button
+                type="button"
+                onClick={handleAutoFill}
+                disabled={isAutoFilling}
+                className={`px-4 py-2.5 rounded-lg text-sm font-medium ${isAutoFilling ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              >
+                {isAutoFilling ? 'Analyzing...' : 'Auto-Fill'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">We’ll scan your site to fill in the fields above.</p>
           </div>
         </div>
         

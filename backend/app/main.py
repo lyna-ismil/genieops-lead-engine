@@ -1,3 +1,4 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
@@ -25,6 +26,10 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def _start_scheduler():
+        if (settings.email_provider or "").lower() == "sendgrid" and not settings.email_api_key:
+            logging.getLogger(__name__).warning(
+                "EMAIL_PROVIDER=sendgrid but EMAIL_API_KEY is missing; emails will fail to send."
+            )
         if not scheduler.running:
             scheduler.start()
 

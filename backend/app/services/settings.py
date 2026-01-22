@@ -57,10 +57,13 @@ def update_app_settings(session: Session, payload: SettingsUpdate) -> Settings:
     existing = session.exec(select(AppSetting).limit(1)).first()
     if not existing:
         existing = AppSetting(
-            llm_provider="gemini",
+            llm_provider="openai",
             email_provider="none",
         )
     data = payload.model_dump(exclude_none=True)
+    # OpenAI-only: ignore any attempt to switch providers.
+    if "llm_provider" in data:
+        data["llm_provider"] = "openai"
     for key, value in data.items():
         setattr(existing, key, value)
     session.add(existing)

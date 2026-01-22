@@ -1,11 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { LayoutDashboard, PlusCircle, Settings, Layers, Menu } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ToastProvider } from '../context/ToastContext';
+import ChatWidget from './ChatWidget';
+import { request } from '../services/api';
 
 const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const isActive = (path: string) => location.pathname === path;
+
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      setAuthChecked(true);
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    request<{ name?: string; email?: string }>(`/api/auth/me`)
+      .then((data) => {
+        setUser(data);
+      })
+      .catch(() => {
+        localStorage.removeItem('auth_token');
+        navigate('/login', { replace: true });
+      })
+      .finally(() => setAuthChecked(true));
+  }, [navigate]);
+
+  if (!authChecked) {
+    return null;
+  }
+
+  if (!localStorage.getItem('auth_token')) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -50,12 +82,23 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
         <div className="p-4 border-t border-gray-100">
            <div className="flex items-center gap-3 px-3 py-2 text-sm text-gray-500">
-             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">A</div>
+             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+               {(user?.name || user?.email || 'U').slice(0, 1).toUpperCase()}
+             </div>
              <div>
-                <p className="text-gray-900 font-medium">Admin User</p>
-                <p className="text-xs">admin@genieops.com</p>
+                <p className="text-gray-900 font-medium">{user?.name || 'User'}</p>
+                <p className="text-xs">{user?.email || ''}</p>
              </div>
            </div>
+           <button
+             onClick={() => {
+               localStorage.removeItem('auth_token');
+               navigate('/login', { replace: true });
+             }}
+             className="mt-3 w-full text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg py-2"
+           >
+             Log out
+           </button>
         </div>
       </aside>
 
@@ -71,6 +114,7 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             {children}
         </div>
       </main>
+      <ChatWidget />
     </div>
   );
 };

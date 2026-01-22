@@ -1,16 +1,25 @@
 from functools import lru_cache
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+_ENV_FILE = str(Path(__file__).resolve().parents[2] / ".env")
+
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
+    model_config = SettingsConfigDict(
+        env_file=_ENV_FILE,
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
     environment: str = "local"
     database_url: str = "sqlite:///./genieops.db"
 
-    llm_provider: str = "gemini"
+    llm_provider: str = "openai"
     llm_api_key: str | None = None
-    llm_model: str = "gemini-1.5-flash"
+    llm_model: str = "gpt-4o-mini"
     llm_temperature: float = 0.4
     llm_max_tokens: int = 2048
 
@@ -24,6 +33,11 @@ class Settings(BaseSettings):
     linkedin_client_id: str | None = None
     linkedin_client_secret: str | None = None
     linkedin_redirect_uri: str | None = None
+
+    unsplash_access_key: str | None = None
+
+    jwt_secret: str = "dev-secret-change"
+    jwt_expires_minutes: int = 60 * 24
 
 
 @lru_cache

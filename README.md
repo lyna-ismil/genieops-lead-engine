@@ -49,7 +49,7 @@ GenieOps Lead Engine is a comprehensive full-stack application that streamlines 
 - **Framework**: FastAPI (Python 3.11+)
 - **Database**: PostgreSQL with SQLAlchemy ORM
 - **Migrations**: Alembic
-- **AI Integration**: OpenAI, Google Gemini, Perplexity APIs
+- **AI Integration**: OpenAI API
 - **Email**: SendGrid (configurable)
 - **Background Tasks**: APScheduler for email automation
 
@@ -71,7 +71,7 @@ GenieOps Lead Engine is a comprehensive full-stack application that streamlines 
 - **Node.js** 18+ and npm
 - **Python** 3.11+
 - **PostgreSQL** 14+
-- **API Keys**: OpenAI, Google Gemini, or Perplexity (at least one)
+- **API Keys**: OpenAI
 
 ### Installation
 
@@ -137,10 +137,10 @@ The application will be available at:
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/genieops
 
-# LLM Provider (openai, gemini, or perplexity)
-LLM_PROVIDER=gemini
+# LLM Provider (OpenAI-only)
+LLM_PROVIDER=openai
 LLM_API_KEY=your_api_key_here
-LLM_MODEL=gemini-1.5-flash
+LLM_MODEL=gpt-4o-mini
 LLM_TEMPERATURE=0.4
 LLM_MAX_TOKENS=2048
 
@@ -280,4 +280,4 @@ Contributions are welcome! Please follow these steps:
 
 - Built with [FastAPI](https://fastapi.tiangolo.com/)
 - UI powered by [React](https://react.dev/) and [TailwindCSS](https://tailwindcss.com/)
-- AI capabilities via [OpenAI](https://openai.com/), [Google Gemini](https://deepmind.google/technologies/gemini/), and [Perplexity](https://www.perplexity.ai/)
+- AI capabilities via [OpenAI](https://openai.com/)

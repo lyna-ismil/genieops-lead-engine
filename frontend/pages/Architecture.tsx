@@ -31,7 +31,7 @@ const Architecture: React.FC = () => {
                 <div className="hidden md:block text-gray-400">↔</div>
                 <div className="p-4 bg-purple-50 border border-purple-100 rounded-lg text-center w-full">
                     <div className="font-bold text-purple-800">LLM Engine</div>
-                    <div className="text-purple-600">Gemini Pro/Flash</div>
+                    <div className="text-purple-600">OpenAI (GPT models)</div>
                 </div>
                 <div className="hidden md:block text-gray-400">→</div>
                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center w-full">
@@ -72,7 +72,7 @@ const Architecture: React.FC = () => {
                 </h3>
                 <ul className="space-y-3 text-sm text-gray-600">
                     <li className="flex gap-2"><span className="text-purple-500 font-bold">•</span> <strong>Chained Prompts:</strong> Output of Agent A (Ideation) feeds Agent B (Asset).</li>
-                    <li className="flex gap-2"><span className="text-purple-500 font-bold">•</span> <strong>Strict JSON Mode:</strong> Enforcing schema output from Gemini to prevent parsing errors.</li>
+                    <li className="flex gap-2"><span className="text-purple-500 font-bold">•</span> <strong>Strict JSON Mode:</strong> Enforcing schema output from the LLM to prevent parsing errors.</li>
                     <li className="flex gap-2"><span className="text-purple-500 font-bold">•</span> <strong>Context Injection:</strong> Passing ICP data into every prompt to maintain relevance.</li>
                 </ul>
             </div>

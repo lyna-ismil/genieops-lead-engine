@@ -18,6 +18,24 @@ const mapProjectToPayload = (project: Project) => ({
         pain_points: project.icp.painPoints,
         goals: project.icp.goals
     },
+    product_context: project.productContext ? {
+        unique_mechanism: project.productContext.uniqueMechanism,
+        competitor_contrast: project.productContext.competitorContrast,
+        company_name: project.productContext.companyName,
+        product_description: project.productContext.productDescription,
+        main_benefit: project.productContext.mainBenefit,
+        website_url: project.productContext.websiteUrl,
+        tone_guidelines: project.productContext.toneGuidelines || [],
+        primary_color: project.productContext.primaryColor,
+        font_style: project.productContext.fontStyle,
+        design_vibe: project.productContext.designVibe,
+        logo_url: project.productContext.logoUrl,
+        voice_profile: project.productContext.voiceProfile ? {
+            sentence_length: project.productContext.voiceProfile.sentenceLength,
+            jargon_level: project.productContext.voiceProfile.jargonLevel,
+            banned_words: project.productContext.voiceProfile.bannedWords
+        } : undefined
+    } : undefined,
     offer_type: project.offerType,
     brand_voice: project.brandVoice,
     target_conversion: project.targetConversion,
@@ -28,6 +46,7 @@ const mapProjectToPayload = (project: Project) => ({
         value_promise: project.selectedIdea.valuePromise || "",
         conversion_score: project.selectedIdea.conversionScore || 0,
         format_recommendation: project.selectedIdea.formatRecommendation || "",
+        strategy_summary: project.selectedIdea.strategySummary,
         campaign_id: "temp",
     } : undefined,
     asset: project.asset ? {
@@ -43,8 +62,12 @@ const mapProjectToPayload = (project: Project) => ({
         cta: project.landingPage.cta || "",
         html_content: project.landingPage.htmlContent || "",
         image_url: project.landingPage.imageUrl, 
-        sections: {},
-        form_schema: {},
+        background_style: project.landingPage.backgroundStyle,
+        theme: project.landingPage.theme,
+        sections: Array.isArray(project.landingPage.sections) ? project.landingPage.sections : [],
+        form_schema: Array.isArray(project.landingPage.formSchema) ? project.landingPage.formSchema : [],
+        social_proof: Array.isArray(project.landingPage.socialProof) ? project.landingPage.socialProof : [],
+        faq: Array.isArray(project.landingPage.faq) ? project.landingPage.faq : [],
         lead_magnet_id: "temp",
         slug: project.landingPage.slug || `slug-${Date.now()}`,
     } : undefined,
@@ -60,13 +83,26 @@ const mapProjectToPayload = (project: Project) => ({
     } : undefined,
     linked_in_post: project.linkedInPost || undefined,
     upgrade_offer: project.upgradeOffer ? {
-        positioning: project.upgradeOffer.positioning || "",
-        offerCopy: project.upgradeOffer.offerCopy || "",
-        cta: project.upgradeOffer.cta || ""
+        core_offer: project.upgradeOffer.coreOffer || "",
+        price: project.upgradeOffer.price || "",
+        value_anchor: project.upgradeOffer.valueAnchor || "",
+        guarantee: project.upgradeOffer.guarantee || "",
+        bonuses: project.upgradeOffer.bonuses || []
     } : undefined
 });
 
-const mapBackendToProject = (data: any): Project => ({
+const mapBackendToProject = (data: any): Project => {
+    const rawProduct = data.product_context || data.productContext;
+    const rawUpgrade = data.upgrade_offer || data.upgradeOffer;
+    const normalizeDesignVibe = (value: string | undefined) => {
+        if (!value) return 'minimal';
+        const v = value.toLowerCase();
+        if (v === 'tech') return 'corporate';
+        if (v === 'corporate' || v === 'bold' || v === 'minimal') return v;
+        return 'minimal';
+    };
+
+    return ({
     id: data.id,
     name: data.name || "Untitled Project",
     createdAt: data.created_at,
@@ -89,7 +125,8 @@ const mapBackendToProject = (data: any): Project => ({
         painPointAlignment: data.selected_idea.pain_point_alignment,
         valuePromise: data.selected_idea.value_promise,
         conversionScore: data.selected_idea.conversion_score,
-        formatRecommendation: data.selected_idea.format_recommendation
+        formatRecommendation: data.selected_idea.format_recommendation,
+        strategySummary: data.selected_idea.strategy_summary
     } : undefined,
     asset: data.asset ? {
         content: data.asset.content,
@@ -102,7 +139,14 @@ const mapBackendToProject = (data: any): Project => ({
         cta: data.landing_page.cta,
         htmlContent: data.landing_page.html_content,
         imageUrl: data.landing_page.image_url,
-        slug: data.landing_page.slug
+        backgroundStyle: data.landing_page.background_style || data.landing_page.backgroundStyle,
+        theme: data.landing_page.theme,
+        slug: data.landing_page.slug,
+        sections: Array.isArray(data.landing_page.sections) ? data.landing_page.sections : [],
+        formSchema: Array.isArray(data.landing_page.form_schema) ? data.landing_page.form_schema : [],
+        socialProof: Array.isArray(data.landing_page.social_proof) ? data.landing_page.social_proof : [],
+        faq: Array.isArray(data.landing_page.faq) ? data.landing_page.faq : [],
+        rawImagePrompt: data.landing_page.raw_image_prompt
     } : undefined,
     emailSequence: (data.email_sequence?.emails && Array.isArray(data.email_sequence.emails)) ? data.email_sequence.emails.map((e: any) => ({
         id: e.id,
@@ -112,12 +156,33 @@ const mapBackendToProject = (data: any): Project => ({
         intent: e.intent
     })) : undefined,
     linkedInPost: data.linked_in_post || undefined,
-    upgradeOffer: data.upgrade_offer ? {
-        positioning: data.upgrade_offer.positioning,
-        offerCopy: data.upgrade_offer.offerCopy || data.upgrade_offer.offer_copy, 
-        cta: data.upgrade_offer.cta
+    productContext: rawProduct ? {
+        uniqueMechanism: rawProduct.unique_mechanism || rawProduct.uniqueMechanism || '',
+        competitorContrast: rawProduct.competitor_contrast || rawProduct.competitorContrast || '',
+        companyName: rawProduct.company_name || rawProduct.companyName || '',
+        productDescription: rawProduct.product_description || rawProduct.productDescription || '',
+        mainBenefit: rawProduct.main_benefit || rawProduct.mainBenefit || '',
+        websiteUrl: rawProduct.website_url || rawProduct.websiteUrl || '',
+        toneGuidelines: rawProduct.tone_guidelines || rawProduct.toneGuidelines || [],
+        primaryColor: rawProduct.primary_color || rawProduct.primaryColor || '',
+        fontStyle: rawProduct.font_style || rawProduct.fontStyle || 'sans',
+        designVibe: normalizeDesignVibe(rawProduct.design_vibe || rawProduct.designVibe),
+        logoUrl: rawProduct.logo_url || rawProduct.logoUrl || '',
+        voiceProfile: (rawProduct.voice_profile || rawProduct.voiceProfile) ? {
+            sentenceLength: (rawProduct.voice_profile?.sentence_length || rawProduct.voiceProfile?.sentenceLength || ''),
+            jargonLevel: (rawProduct.voice_profile?.jargon_level || rawProduct.voiceProfile?.jargonLevel || ''),
+            bannedWords: (rawProduct.voice_profile?.banned_words || rawProduct.voiceProfile?.bannedWords || [])
+        } : undefined
+    } : undefined,
+    upgradeOffer: rawUpgrade ? {
+        coreOffer: rawUpgrade.core_offer || rawUpgrade.coreOffer || rawUpgrade.positioning || '',
+        price: rawUpgrade.price || '',
+        valueAnchor: rawUpgrade.value_anchor || rawUpgrade.valueAnchor || '',
+        guarantee: rawUpgrade.guarantee || '',
+        bonuses: rawUpgrade.bonuses || []
     } : undefined
 });
+};
 
 
 // --- API Actions ---

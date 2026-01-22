@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { ICPProfile, LeadMagnetIdea, GeneratedAsset } from '../../types';
-import { generateAssetContent } from '../../services/gemini';
+import { ICPProfile, LeadMagnetIdea, GeneratedAsset, ProductContext } from '../../types';
+import { generateAssetContent } from '../../services/llm';
 import { FileText, Loader2, RefreshCw, Copy, Check } from 'lucide-react';
+import CalculatorWidget from '../CalculatorWidget';
 
 interface Props {
   icp: ICPProfile;
   idea: LeadMagnetIdea;
   offerType?: string;
   brandVoice?: string;
+  productContext?: ProductContext;
   onNext: (asset: GeneratedAsset) => void;
   onBack: () => void;
   savedAsset?: GeneratedAsset;
 }
 
-const AssetStep: React.FC<Props> = ({ icp, idea, offerType, brandVoice, onNext, onBack, savedAsset }) => {
+const AssetStep: React.FC<Props> = ({ icp, idea, offerType, brandVoice, productContext, onNext, onBack, savedAsset }) => {
   const [asset, setAsset] = useState<GeneratedAsset | null>(savedAsset || null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -21,7 +23,7 @@ const AssetStep: React.FC<Props> = ({ icp, idea, offerType, brandVoice, onNext, 
   const generate = async () => {
     setLoading(true);
     try {
-      const result = await generateAssetContent(idea, icp, offerType, brandVoice);
+      const result = await generateAssetContent(idea, icp, offerType, brandVoice, productContext);
       setAsset(result);
     } catch (error) {
       console.error(error);
@@ -83,9 +85,18 @@ const AssetStep: React.FC<Props> = ({ icp, idea, offerType, brandVoice, onNext, 
             )}
         </div>
 
+
         <div className="flex-1 overflow-auto p-8 font-mono text-sm leading-relaxed bg-white">
             {asset ? (
-                <pre className="whitespace-pre-wrap max-w-3xl mx-auto">{asset.content}</pre>
+                <div className="max-w-3xl mx-auto">
+                    {asset.type === 'calculator' && asset.contentJson && (
+                        <div className="mb-8 not-prose font-sans">
+                           <CalculatorWidget config={asset.contentJson} />
+                           <div className="my-8 border-t border-gray-100"></div>
+                        </div>
+                    )}
+                    <pre className="whitespace-pre-wrap">{asset.content}</pre>
+                </div>
             ) : (
                 <div className="h-full flex items-center justify-center text-gray-300">
                     Waiting for generation...

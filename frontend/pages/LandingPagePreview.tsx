@@ -5,6 +5,7 @@ import { Project, LandingPageConfig } from '../types';
 import LandingPageRenderer from '../components/LandingPageRenderer';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { request } from '../services/api';
 
 const LandingPagePreview: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,15 +23,17 @@ const LandingPagePreview: React.FC = () => {
     }
   }, [id]);
 
-  const handleSubmit = async (data: any) => {
-      // Logic for form submission
-      console.log("Form submitted", data);
-      
-      // In a real app, you'd POST this to your backend
-      // await submitLead(project.id, data);
-      
-      toast.success("Details submitted successfully! (Demo)");
-  };
+    const handleSubmit = async (data: any) => {
+      if (!project?.landingPage?.slug) {
+        toast.error("Missing landing page slug.");
+        return;
+      }
+      const result = await request<any>(`/api/public/lp/${project.landingPage.slug}/submit`, {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
+      return result;
+    };
 
   if (loading) {
     return (
@@ -49,6 +52,12 @@ const LandingPagePreview: React.FC = () => {
         config={project.landingPage} 
         mode="desktop" // Preview is always full screen desktop/responsive
         onSubmit={handleSubmit}
+      primaryColor={project.productContext?.primaryColor}
+      brand={{
+        primaryColor: project.productContext?.primaryColor,
+        fontStyle: project.productContext?.fontStyle,
+        logoUrl: project.productContext?.logoUrl
+      }}
     />
   );
 };

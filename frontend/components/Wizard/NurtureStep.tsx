@@ -1,29 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { LeadMagnetIdea, Email } from '../../types';
-import { generateNurtureSequence, generateUpgradeOffer } from '../../services/gemini';
+import { LeadMagnetIdea, Email, OfferStack, ProductContext, GeneratedAsset } from '../../types';
+import { generateNurtureSequence, generateUpgradeOffer } from '../../services/llm';
 import { Mail, Clock, ArrowRight, Loader2, Gift } from 'lucide-react';
 
 interface Props {
   idea: LeadMagnetIdea;
+  asset?: GeneratedAsset;
+  offerType?: string;
   brandVoice?: string;
   targetConversion?: string;
-  onNext: (emails: Email[], upgrade: any) => void;
+  productContext?: ProductContext;
+  onNext: (emails: Email[], upgrade: OfferStack | null) => void;
   onBack: () => void;
   savedEmails?: Email[];
 }
 
-const NurtureStep: React.FC<Props> = ({ idea, brandVoice, targetConversion, onNext, onBack, savedEmails }) => {
+const NurtureStep: React.FC<Props> = ({ idea, asset, offerType, brandVoice, targetConversion, productContext, onNext, onBack, savedEmails }) => {
   const [emails, setEmails] = useState<Email[]>(savedEmails || []);
-  const [upgrade, setUpgrade] = useState<any>(null);
+  const [upgrade, setUpgrade] = useState<OfferStack | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const emailResult = await generateNurtureSequence(idea, brandVoice, targetConversion);
+      const emailResult = await generateNurtureSequence(idea, brandVoice, targetConversion, productContext, asset);
       setEmails(emailResult);
       
-      const upgradeResult = await generateUpgradeOffer(idea, emailResult);
+      const upgradeResult = await generateUpgradeOffer(idea, emailResult, offerType, brandVoice, productContext, targetConversion);
       setUpgrade(upgradeResult);
     } catch (error) {
       console.error(error);
@@ -95,14 +98,35 @@ const NurtureStep: React.FC<Props> = ({ idea, brandVoice, targetConversion, onNe
                 {loading ? (
                     <div className="h-64 bg-gray-100 rounded-xl animate-pulse"></div>
                 ) : upgrade ? (
-                    <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100 shadow-sm">
-                        <div className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-2">Next Step Offer</div>
-                        <h4 className="font-bold text-gray-900 mb-3">{upgrade.positioning}</h4>
-                        <p className="text-sm text-gray-700 mb-4 leading-relaxed">{upgrade.offerCopy}</p>
-                        <button className="w-full py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-purple-700 transition">
-                            CTA: {upgrade.cta}
-                        </button>
+                  <div className="bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100 shadow-sm">
+                    <div className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-2">Irresistible Offer</div>
+                    <h4 className="font-bold text-gray-900 mb-3">{upgrade.coreOffer}</h4>
+                    <div className="flex items-end gap-2 mb-4">
+                      <span className="text-sm text-gray-400 line-through">{upgrade.valueAnchor}</span>
+                      <span className="text-2xl font-extrabold text-gray-900">{upgrade.price}</span>
                     </div>
+                    <div className="mb-4">
+                      <div className="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-2">Bonuses</div>
+                      <ul className="space-y-2 text-sm text-gray-700">
+                        {(upgrade.bonuses || []).map((bonus, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="mt-1 text-purple-500">✔</span>
+                            <span>{bonus}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="bg-white border border-purple-100 rounded-lg p-3 text-sm text-gray-700 mb-4">
+                      <div className="flex items-center gap-2 font-semibold text-purple-700 mb-1">
+                        <span>🛡️</span>
+                        <span>Guarantee</span>
+                      </div>
+                      <p>{upgrade.guarantee}</p>
+                    </div>
+                    <button className="w-full py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold shadow hover:bg-purple-700 transition">
+                      Claim Offer
+                    </button>
+                  </div>
                 ) : null}
             </div>
         </div>

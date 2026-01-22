@@ -1,176 +1,329 @@
-import React from 'react';
-import { LandingPageConfig, Section, FormField } from '../../types';
-import { CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { LandingPageConfig, Section } from '../types';
+import { Check, ArrowRight, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+
+// --- Design System Tokens ---
+const TOKENS = {
+  radius: {
+    sm: 'rounded-[4px]',
+    md: 'rounded-[8px]',
+    lg: 'rounded-[12px]',
+  },
+  animation: 'transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]',
+  layout: {
+    maxWidth: 'max-w-[1100px]', // Stricter width for readability
+    sectionPadding: 'py-16 md:py-24',
+  }
+};
 
 interface Props {
   config: LandingPageConfig;
   mode?: 'desktop' | 'mobile';
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: any) => Promise<any>;
+  primaryColor?: string;
+  brand?: {
+    primaryColor?: string;
+    fontStyle?: 'serif' | 'sans' | 'mono';
+    logoUrl?: string;
+  };
 }
 
-const LandingPageRenderer: React.FC<Props> = ({ config, mode = 'desktop', onSubmit }) => {
-  const containerClass = mode === 'mobile' ? 'max-w-[375px] mx-auto border-x border-gray-200 shadow-xl' : 'w-full';
+// --- Atomic Components ---
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onSubmit) {
-        const formData = new FormData(e.target as HTMLFormElement);
-        onSubmit(Object.fromEntries(formData));
-    }
-  };
+const PrimaryButton = ({ 
+  children, 
+  onClick, 
+  isLoading, 
+  color 
+}: { 
+  children: React.ReactNode; 
+  onClick?: () => void; 
+  isLoading?: boolean; 
+  color: string;
+}) => (
+  <button
+    onClick={onClick}
+    disabled={isLoading}
+    className={`
+      ${TOKENS.radius.md} ${TOKENS.animation}
+      px-6 py-3 font-medium text-white shadow-sm
+      hover:translate-y-[-2px] hover:shadow-md active:translate-y-0
+      disabled:opacity-70 disabled:cursor-not-allowed
+      flex items-center justify-center gap-2
+    `}
+    style={{ backgroundColor: color }}
+  >
+    {isLoading && <Loader2 size={18} className="animate-spin" />}
+    {children}
+  </button>
+);
+
+const SectionHeader = ({ title, subtitle, isDark }: { title: string; subtitle?: string; isDark: boolean }) => (
+  <div className="mb-12 md:mb-16">
+    <h2 className={`text-2xl md:text-3xl font-semibold tracking-tight mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+      {title}
+    </h2>
+    {subtitle && (
+      <p className={`text-lg max-w-2xl leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+        {subtitle}
+      </p>
+    )}
+  </div>
+);
+
+// --- Section Variants ---
+
+const SplitSection = ({ section, isDark }: { section: Section; isDark: boolean }) => (
+  <div className={`${TOKENS.layout.maxWidth} mx-auto px-6`}>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <div>
+        <h3 className={`text-2xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          {section.title}
+        </h3>
+        <p className={`mb-8 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+          {section.subtitle || section.body}
+        </p>
+        <ul className="space-y-4">
+          {(section.items || []).map((item, i) => (
+            <li key={i} className="flex gap-3 items-start">
+              <div className={`mt-1 flex-shrink-0 w-5 h-5 ${TOKENS.radius.sm} bg-slate-100 flex items-center justify-center`}>
+                <Check size={12} className="text-slate-900" />
+              </div>
+              <div>
+                <strong className={`block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+                  {item.title}
+                </strong>
+                <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                  {item.description}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className={`aspect-square ${TOKENS.radius.lg} ${isDark ? 'bg-slate-800' : 'bg-slate-100'} flex items-center justify-center border ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+        {/* Placeholder for real product UI - No generic illustrations */}
+        <div className="text-center p-8">
+          <div className="w-12 h-12 bg-slate-300 rounded-full mx-auto mb-4" />
+          <p className="text-sm text-slate-500 font-mono">Product UI Preview</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const GridSection = ({ section, isDark }: { section: Section; isDark: boolean }) => (
+  <div className={`${TOKENS.layout.maxWidth} mx-auto px-6`}>
+    <SectionHeader title={section.title} subtitle={section.subtitle} isDark={isDark} />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {(section.items || []).map((item, i) => (
+        <div 
+          key={i} 
+          className={`
+            p-6 border ${TOKENS.radius.md} ${TOKENS.animation}
+            ${isDark ? 'border-slate-800 bg-slate-900/50 hover:border-slate-700' : 'border-slate-200 bg-white hover:border-slate-300'}
+          `}
+        >
+          <h4 className={`text-base font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {item.title}
+          </h4>
+          <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            {item.description}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const FAQSection = ({ section, isDark }: { section: Section; isDark: boolean }) => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className={`bg-white min-h-screen font-sans ${containerClass}`}>
-      
-      {/* Hero Section */}
-      <header className="bg-gradient-to-br from-indigo-50 to-white pt-16 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-         <div className="max-w-7xl mx-auto">
-            <div className={`grid gap-12 items-center ${mode === 'mobile' ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
-               <div className="space-y-8 relative z-10">
-                   <div>
-                       <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight mb-6">
-                           {config.headline || "Your Main Headline Here"}
-                       </h1>
-                       <p className="text-xl text-gray-600 leading-relaxed">
-                           {config.subheadline || "Subheadline that explains the value proposition clearly."}
-                       </p>
-                   </div>
-                   
-                   {config.bullets && config.bullets.length > 0 && (
-                       <ul className="space-y-4">
-                           {config.bullets.map((bullet, idx) => (
-                               <li key={idx} className="flex items-start gap-3">
-                                   <CheckCircle className="text-green-500 shrink-0 mt-1" size={20} />
-                                   <span className="text-gray-700 font-medium">{bullet}</span>
-                               </li>
-                           ))}
-                       </ul>
-                   )}
-                   
-                   {/* Desktop CTA / Form */}
-                   <div className="pt-4">
-                       {config.formSchema && config.formSchema.length > 0 ? (
-                           <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 max-w-md">
-                               <h3 className="text-lg font-bold text-gray-800 mb-4">Get Instant Access</h3>
-                               <div className="space-y-4">
-                                   {config.formSchema.map((field) => (
-                                       <div key={field.name}>
-                                           <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
-                                           {field.type === 'textarea' ? (
-                                             <textarea 
-                                                name={field.name} 
-                                                required={field.required}
-                                                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                                rows={3}
-                                             />
-                                           ) : (
-                                             <input 
-                                                type={field.type} 
-                                                name={field.name}
-                                                required={field.required}
-                                                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                                             />
-                                           )}
-                                       </div>
-                                   ))}
-                                   <button type="submit" className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all shadow-md transform hover:scale-[1.02]">
-                                       {config.cta || "Sign Up Now"}
-                                   </button>
-                                   <p className="text-xs text-center text-gray-400 mt-2">No credit card required. Unsubscribe anytime.</p>
-                               </div>
-                           </form>
-                       ) : (
-                           <button className="px-8 py-4 bg-blue-600 text-white text-lg font-bold rounded-full shadow-lg hover:bg-blue-700 transition transform hover:-translate-y-1">
-                               {config.cta || "Get Started"}
-                           </button>
-                       )}
-                   </div>
-               </div>
-               
-               {/* Hero Image */}
-               <div className="relative">
-                   {config.imageUrl ? (
-                       <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white transform rotate-2 hover:rotate-0 transition duration-500">
-                           <img src={config.imageUrl} alt="Hero" className="w-full h-auto object-cover" />
-                       </div>
-                   ) : (
-                       <div className="aspect-video bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-300">
-                           No Image Generated
-                       </div>
-                   )}
-                   {/* Decorative Blob */}
-                   <div className="absolute -top-10 -right-10 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -z-10 animate-blob"></div>
-                   <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 -z-10 animate-blob animation-delay-2000"></div>
-               </div>
+    <div className="max-w-2xl mx-auto px-6">
+      <SectionHeader title={section.title} isDark={isDark} />
+      <div className="space-y-4">
+        {(section.items || []).map((item, i) => (
+          <div 
+            key={i} 
+            className={`border-b ${isDark ? 'border-slate-800' : 'border-slate-200'} pb-4`}
+          >
+            <button
+              onClick={() => setOpenIndex(openIndex === i ? null : i)}
+              className="w-full flex justify-between items-center text-left py-2 focus:outline-none"
+            >
+              <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                {item.title}
+              </span>
+              {openIndex === i ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            <div 
+              className={`overflow-hidden transition-all duration-300 ${openIndex === i ? 'max-h-40 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}
+            >
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                {item.description}
+              </p>
             </div>
-         </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- Main Renderer ---
+
+const LandingPageRenderer: React.FC<Props> = ({ config, mode = 'desktop', onSubmit, primaryColor, brand }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isDark = config.theme === 'dark';
+  const brandColor = brand?.primaryColor || primaryColor || '#2563eb';
+  
+  const bgClass = isDark ? 'bg-slate-950' : 'bg-white';
+  const textPrimary = isDark ? 'text-white' : 'text-slate-900';
+  const textSecondary = isDark ? 'text-slate-400' : 'text-slate-600';
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    if (!onSubmit) {
+      alert("PREVIEW MODE: Submission disabled. Please save and use the 'Open Live' link from the dashboard.");
+      setIsSubmitting(false);
+      return;
+    }
+    if (onSubmit) {
+      const formData = new FormData(e.target as HTMLFormElement);
+      try {
+        const response: any = await onSubmit(Object.fromEntries(formData));
+
+        if (response && (response.success || response.message === "Success")) {
+          if (response.redirect_url) {
+            if (window.location.hash) {
+              window.location.hash = response.redirect_url;
+            } else {
+              window.location.href = response.redirect_url;
+            }
+          } else {
+            alert("Success! Check your email.");
+          }
+        }
+      } catch (err) {
+        console.error("Submission failed", err);
+        alert("Something went wrong. Please try again.");
+      }
+    }
+    setIsSubmitting(false);
+  };
+
+  const containerClass = mode === 'mobile' ? 'max-w-[375px] mx-auto border-x border-gray-200 shadow-xl' : 'w-full';
+
+  return (
+    <div className={`min-h-screen ${bgClass} font-sans antialiased selection:bg-blue-500/20 ${containerClass}`}>
+      
+      {/* Navbar Stub - Structural only */}
+      <nav className={`h-16 border-b ${isDark ? 'border-slate-900' : 'border-slate-100'} flex items-center px-6`}>
+        {brand?.logoUrl ? (
+            <img src={brand.logoUrl} alt="Logo" className="h-8 w-auto" />
+        ) : (
+            <div className={`w-6 h-6 ${TOKENS.radius.sm} bg-current opacity-20 ${textPrimary}`}></div>
+        )}
+      </nav>
+
+      {/* Hero Section */}
+      <header className={`${TOKENS.layout.sectionPadding} px-6 text-center`}>
+        <div className={`${TOKENS.layout.maxWidth} mx-auto`}>
+          {/* Label */}
+          <div className={`inline-flex items-center gap-2 px-3 py-1 mb-8 ${TOKENS.radius.sm} border ${isDark ? 'border-slate-800 bg-slate-900 text-slate-300' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+            <span className="text-xs font-medium uppercase tracking-wide">Free Resource</span>
+          </div>
+
+          <h1 className={`text-4xl md:text-6xl font-semibold tracking-tight mb-6 leading-[1.1] ${textPrimary}`}>
+            {config.headline}
+          </h1>
+          
+          <p className={`text-lg md:text-xl ${textSecondary} max-w-2xl mx-auto mb-10 leading-relaxed`}>
+            {config.subheadline}
+          </p>
+
+          {config.imageUrl && (
+            <div className="mb-10">
+              <img
+                src={config.imageUrl}
+                alt="Hero"
+                className={`w-full max-w-4xl mx-auto ${TOKENS.radius.lg} border ${isDark ? 'border-slate-800' : 'border-slate-200'} shadow-sm`}
+              />
+            </div>
+          )}
+
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+            <PrimaryButton color={brandColor} onClick={() => document.getElementById('capture-form')?.scrollIntoView({ behavior: 'smooth' })}>
+              {config.cta} <ArrowRight size={16} />
+            </PrimaryButton>
+            
+            {/* Secondary Action - Muted */}
+            <button className={`px-6 py-3 text-sm font-medium ${textSecondary} hover:text-slate-900 transition-colors`}>
+              Learn more
+            </button>
+          </div>
+        </div>
       </header>
 
-      {/* Social Proof Section */}
-      {config.socialProof && config.socialProof.length > 0 && (
-          <section className="bg-gray-50 py-12 border-y border-gray-100">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                  <p className="text-center text-sm font-semibold text-gray-400 uppercase tracking-widest mb-8">Trusted by industry leaders</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      {config.socialProof.map((proof, idx) => (
-                          <div key={idx} className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 italic text-gray-600 text-center">
-                              "{proof.quote}"
-                              <div className="mt-4 font-bold text-gray-900 not-italic">— {proof.author}</div>
-                          </div>
-                      ))}
-                  </div>
+      {/* Main Content Sections */}
+      <main className="space-y-24">
+        {(config.sections || []).map((section, idx) => {
+          switch (section.variant) {
+            case 'split_feature':
+              return <SplitSection key={section.id} section={section} isDark={isDark} />;
+            case 'faq':
+              return <FAQSection key={section.id} section={section} isDark={isDark} />;
+            default:
+              return <GridSection key={section.id} section={section} isDark={isDark} />;
+          }
+        })}
+      </main>
+
+      {/* Capture Section - Structural Focus */}
+      <section id="capture-form" className={`${TOKENS.layout.sectionPadding} px-6`}>
+        <div className={`max-w-md mx-auto p-8 border ${TOKENS.radius.lg} ${isDark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-slate-50'}`}>
+          <h3 className={`text-xl font-semibold mb-2 ${textPrimary}`}>
+            Get Access
+          </h3>
+          <p className={`text-sm mb-6 ${textSecondary}`}>
+            Enter your details to get the asset.
+          </p>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {(config.formSchema || []).map((field) => (
+              <div key={field.name}>
+                <label className={`block text-xs font-medium uppercase tracking-wide mb-1.5 ${textSecondary}`}>
+                  {field.label} {field.required && '*'}
+                </label>
+                <input
+                  type={field.type}
+                  name={field.name}
+                  required={field.required}
+                  className={`
+                    w-full px-3 py-2.5 text-sm ${TOKENS.radius.md} border outline-none ${TOKENS.animation}
+                    ${isDark 
+                      ? 'bg-slate-950 border-slate-700 text-white focus:border-blue-500' 
+                      : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500 shadow-sm'}
+                  `}
+                />
               </div>
-          </section>
-      )}
+            ))}
+            <div className="pt-2">
+              <PrimaryButton color={brandColor} isLoading={isSubmitting}>
+                {config.cta || 'Submit'}
+              </PrimaryButton>
+            </div>
+          </form>
+        </div>
+      </section>
 
-      {/* Dynamic Sections */}
-      {config.sections && config.sections.map((section) => (
-          <section key={section.id} className={`py-20 px-4 sm:px-6 lg:px-8 ${section.variant === 'feature' ? 'bg-white' : 'bg-gray-50'}`}>
-              <div className="max-w-4xl mx-auto">
-                  {section.variant === 'faq' ? (
-                     <div className="max-w-3xl mx-auto">
-                         <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">{section.title}</h2>
-                         <div className="space-y-4">
-                             {(config.faq || []).map((item, idx) => (
-                                 <details key={idx} className="group bg-white rounded-lg border border-gray-200 open:ring-1 open:ring-blue-500 transition">
-                                     <summary className="flex cursor-pointer items-center justify-between p-6 list-none font-medium text-gray-900">
-                                         {item.question}
-                                         <span className="transition group-open:rotate-180">
-                                             <ChevronDown />
-                                         </span>
-                                     </summary>
-                                     <div className="px-6 pb-6 text-gray-600">
-                                         {item.answer}
-                                     </div>
-                                 </details>
-                             ))}
-                             {(!config.faq || config.faq.length === 0) && (
-                                 <div dangerouslySetInnerHTML={{ __html: section.body }} className="prose prose-blue max-w-none text-gray-600" />
-                             )}
-                         </div>
-                     </div>
-                  ) : (
-                     <>
-                        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{section.title}</h2>
-                        <div dangerouslySetInnerHTML={{ __html: section.body }} className="prose prose-lg prose-blue mx-auto text-gray-600" />
-                     </>
-                  )}
-              </div>
-          </section>
-      ))}
-
-      {/* Content Fallback if no sections */}
-      {(!config.sections || config.sections.length === 0) && config.htmlContent && (
-          <div dangerouslySetInnerHTML={{ __html: config.htmlContent }} />
-      )}
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 text-center">
-          <div className="max-w-7xl mx-auto px-4">
-              <p className="text-gray-400">&copy; {new Date().getFullYear()} All rights reserved.</p>
-          </div>
+      {/* Footer - Minimal */}
+      <footer className={`py-12 text-center border-t ${isDark ? 'border-slate-900 text-slate-500' : 'border-slate-100 text-slate-400'}`}>
+        <p className="text-xs font-medium">© {new Date().getFullYear()} All rights reserved.</p>
       </footer>
-
     </div>
   );
 };

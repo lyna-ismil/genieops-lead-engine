@@ -8,10 +8,12 @@ export interface ApiError {
 
 export const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
     try {
+        const token = localStorage.getItem('auth_token');
         const response = await fetch(`${API_BASE}${path}`, {
             ...options,
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 ...(options?.headers || {})
             }
         });
@@ -56,4 +58,15 @@ export const request = async <T>(path: string, options?: RequestInit): Promise<T
         console.error("API Request Error:", e);
         throw { message: e.message || "Network error", status: 0 } as ApiError;
     }
+};
+
+export const get = async <T>(path: string): Promise<T> => {
+    return request<T>(path, { method: 'GET' });
+};
+
+export const post = async <T>(path: string, body: any): Promise<T> => {
+    return request<T>(path, {
+        method: 'POST',
+        body: JSON.stringify(body)
+    });
 };
