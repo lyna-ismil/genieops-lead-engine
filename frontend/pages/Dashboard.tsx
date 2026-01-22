@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Trash2, ExternalLink, Calendar, Users } from 'lucide-react';
 import Layout from '../components/Layout';
 import { useToast } from '../context/ToastContext';
+import DashboardOverview from '../components/DashboardOverview';
 
 const Dashboard: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -51,6 +52,8 @@ const Dashboard: React.FC = () => {
           Create New Lead Magnet
         </Link>
       </div>
+
+      <DashboardOverview projects={projects} loading={loading} />
 
       {loading ? (
         <div className="flex justify-center items-center py-20">

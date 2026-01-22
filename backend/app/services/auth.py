@@ -12,7 +12,7 @@ from app.core.config import get_settings
 from app.db.session import get_session
 from app.models.db import User as UserDB
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 security = HTTPBearer(auto_error=False)
 
 

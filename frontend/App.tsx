@@ -2,7 +2,8 @@ import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import CreateFlow from './pages/CreateFlow';
-import Architecture from './pages/Architecture';
+import AboutUs from './pages/AboutUs';
+import SettingsPage from './pages/Settings';
 import LandingPagePreview from './pages/LandingPagePreview';
 import LinkedInCallback from './pages/LinkedInCallback';
 import { ToastProvider } from './context/ToastContext';
@@ -21,7 +22,8 @@ const App: React.FC = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/create" element={<CreateFlow />} />
-          <Route path="/architecture" element={<Architecture />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/auth/linkedin/callback" element={<LinkedInCallback />} />
           <Route path="/landing/:id" element={<LandingPagePreview />} />
           <Route path="/landing/:slug/thank-you" element={<ThankYou />} />

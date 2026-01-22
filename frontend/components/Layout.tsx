@@ -70,13 +70,22 @@ const LayoutContent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             New Campaign
           </Link>
           <Link
-            to="/architecture"
+            to="/about"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-              isActive('/architecture') ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              isActive('/about') ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >
             <Layers size={18} />
-            System Architecture
+            About Us
+          </Link>
+          <Link
+            to="/settings"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              isActive('/settings') ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+          >
+            <Settings size={18} />
+            Settings
           </Link>
         </nav>
 
