@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { request } from '../services/api';
+import GenieCard from '../components/ui/GenieCard';
+import GenieButton from '../components/ui/GenieButton';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -28,47 +30,52 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
-        <p className="text-sm text-gray-500 mb-6">Log in to access your dashboard.</p>
+    <div className="genie-terminal flex items-center justify-center p-6">
+      <div className="relative z-10 w-full max-w-md">
+        <GenieCard>
+          <div className="genie-section-number">00.</div>
+          <h1 className="text-2xl font-semibold">Access Terminal</h1>
+          <p className="genie-muted text-sm mt-2">Authenticate to enter Genie Ops.</p>
 
-        {error && <div className="text-sm text-red-600 mb-4">{error}</div>}
+          {error && <div className="text-sm text-red-500 mt-4">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 text-white bg-blue-600 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-60"
-          >
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <div>
+              <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full"
+                required
+              />
+            </div>
+            <GenieButton type="submit" disabled={loading} variant="primary" className="w-full justify-center">
+              {loading ? 'Signing in…' : 'Sign in ->'}
+            </GenieButton>
+          </form>
 
-        <p className="text-sm text-gray-500 mt-6">
-          New here?{' '}
-          <Link to="/signup" className="text-blue-600 font-medium hover:underline">Create an account</Link>
-        </p>
+          <p className="text-xs text-green-400/80 mt-6">
+            {'>'} New here?{' '}
+            <Link to="/signup" className="text-green-400 underline">
+              Create an account
+            </Link>
+          </p>
+        </GenieCard>
       </div>
     </div>
   );

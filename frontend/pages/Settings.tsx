@@ -1,22 +1,25 @@
 import React from 'react';
 import Layout from '../components/Layout';
 import { Bell, Palette, ShieldCheck } from 'lucide-react';
+import GenieCard from '../components/ui/GenieCard';
+import GenieButton from '../components/ui/GenieButton';
 
 const SettingsPage: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8 pb-10">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-          <p className="text-lg text-gray-600">Manage preferences for notifications, appearance, and security.</p>
+          <div className="genie-section-number">01.</div>
+          <h1 className="text-3xl font-semibold mb-2">Settings</h1>
+          <p className="text-lg genie-muted">Manage preferences for notifications, appearance, and security.</p>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-gray-800">
-              <Bell size={20} className="text-blue-600" /> Notifications
+          <GenieCard>
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-green-400">
+              <Bell size={18} /> Notifications
             </h3>
-            <div className="space-y-3 text-sm text-gray-600">
+            <div className="space-y-3 text-sm genie-muted">
               <label className="flex items-center gap-3">
                 <input type="checkbox" className="h-4 w-4" defaultChecked />
                 Campaign completion alerts
@@ -30,13 +33,13 @@ const SettingsPage: React.FC = () => {
                 Weekly performance digest
               </label>
             </div>
-          </div>
+          </GenieCard>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-gray-800">
-              <Palette size={20} className="text-purple-600" /> Appearance
+          <GenieCard>
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-green-400">
+              <Palette size={18} /> Appearance
             </h3>
-            <div className="text-sm text-gray-600 space-y-3">
+            <div className="text-sm genie-muted space-y-3">
               <label className="flex items-center gap-3">
                 <input type="checkbox" className="h-4 w-4" />
                 Compact sidebar
@@ -46,19 +49,19 @@ const SettingsPage: React.FC = () => {
                 Show onboarding tips
               </label>
             </div>
-          </div>
+          </GenieCard>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-gray-800">
-              <ShieldCheck size={20} className="text-emerald-600" /> Security
+          <GenieCard>
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 text-green-400">
+              <ShieldCheck size={18} /> Security
             </h3>
-            <div className="text-sm text-gray-600 space-y-2">
+            <div className="text-sm genie-muted space-y-2">
               <p>Two-factor authentication is coming soon.</p>
-              <button className="mt-2 px-4 py-2 text-sm font-semibold text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50">
+              <GenieButton variant="secondary" className="mt-2">
                 Reset sessions
-              </button>
+              </GenieButton>
             </div>
-          </div>
+          </GenieCard>
         </div>
       </div>
     </Layout>

@@ -308,7 +308,7 @@ const CreateFlow: React.FC = () => {
       return (
           <Layout>
               <div className="flex h-screen items-center justify-center">
-                  <Loader2 className="animate-spin text-blue-600" size={32} />
+                  <Loader2 className="animate-spin text-green-400" size={32} />
               </div>
           </Layout>
       );
@@ -316,39 +316,42 @@ const CreateFlow: React.FC = () => {
 
   return (
     <Layout>
-      <div className="flex flex-col lg:flex-row min-h-screen">
+            <div className="flex flex-col lg:flex-row min-h-screen">
          {/* Main Wizard Area */}
-         <div className="flex-1 lg:pr-8 pb-20">
-              <div className="mb-8 pl-1">
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                        New Campaign Wizard
-                        {saving && <span className="text-xs font-normal text-blue-600 flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full"><Loader2 size={12} className="animate-spin"/> Saving...</span>}
-                    </h1>
-                </div>
+                 <div className="flex-1 lg:pr-8 pb-20">
+                            <div className="mb-8 pl-1">
+                                <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <div className="genie-section-number">02.</div>
+                                            <h1 className="text-2xl font-semibold">New Campaign Wizard</h1>
+                                        </div>
+                                        {saving && (
+                                            <span className="text-xs font-normal text-green-400 flex items-center gap-1 border border-green-500/40 px-3 py-1 rounded">
+                                                <Loader2 size={12} className="animate-spin" /> Saving...
+                                            </span>
+                                        )}
+                                </div>
 
-                <div className="flex justify-between items-center relative after:content-[''] after:absolute after:top-1/2 after:left-0 after:w-full after:h-0.5 after:bg-gray-100 after:-z-10">
-                    {steps.map((s, i) => {
-                        const isDone = i < currentStep;
-                        const isCurrent = i === currentStep;
-                        return (
-                           <div key={i} className="flex flex-col items-center gap-2 bg-white px-2 cursor-default z-10">
-                               <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                                   isDone ? 'bg-green-500 text-white' : 
-                                   isCurrent ? 'bg-blue-600 text-white ring-4 ring-blue-50' : 'bg-gray-100 text-gray-400'
-                               }`}>
-                                   {isDone ? <CheckCircle size={16} /> : 
-                                    isCurrent ? <CircleDot size={16} /> : 
-                                    <Circle size={16} />}
-                               </div>
-                               <span className={`text-xs font-medium whitespace-nowrap hidden md:block ${isCurrent ? 'text-blue-700' : 'text-gray-400'}`}>
-                                   {s.label}
-                               </span>
-                           </div>
-                        );
-                    })}
-                </div>
-              </div>
+                                <div className="relative">
+                                    <div className="genie-progress-line" />
+                                    <div className="flex justify-between items-center">
+                                        {steps.map((s, i) => {
+                                            const isDone = i < currentStep;
+                                            const isCurrent = i === currentStep;
+                                            return (
+                                                <div key={i} className="flex flex-col items-center gap-2 px-2 cursor-default z-10">
+                                                    <div className={`genie-step-dot ${isDone ? 'done' : ''} ${isCurrent ? 'active' : ''}`}>
+                                                        {isDone ? <CheckCircle size={16} /> : isCurrent ? <CircleDot size={16} /> : <Circle size={16} />}
+                                                    </div>
+                                                    <span className={`text-[10px] uppercase tracking-[0.25em] whitespace-nowrap hidden md:block ${isCurrent ? 'text-green-300' : 'text-green-400/50'}`}>
+                                                        {s.label}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
 
               <div className="relative">
                 {renderStep()}

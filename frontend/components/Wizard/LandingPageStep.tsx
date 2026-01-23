@@ -5,6 +5,8 @@ import { Loader2, RefreshCw, Smartphone, Monitor, Plus, Trash2, Maximize2, X } f
 import LandingPageRenderer from '../LandingPageRenderer';
 import SkeletonLoader from '../SkeletonLoader';
 import { useToast } from '../../context/ToastContext';
+import GenieCard from '../ui/GenieCard';
+import GenieButton from '../ui/GenieButton';
 
 interface Props {
   icp: ICPProfile;
@@ -175,17 +177,14 @@ const LandingPageStep: React.FC<Props> = ({
   if (!config) {
       return (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="bg-red-50 p-4 rounded-full mb-4">
-                  <RefreshCw className="text-red-500" size={32} />
+              <div className="border border-red-500/40 p-4 rounded mb-4">
+                  <RefreshCw className="text-red-400" size={32} />
               </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Generation Failed</h3>
-              <p className="text-gray-600 mb-6 max-w-md">We couldn't generate your landing page this time. Please try again or check your inputs.</p>
-              <button 
-                  onClick={generate}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition flex items-center gap-2"
-              >
+              <h3 className="text-lg font-semibold mb-2">Generation Failed</h3>
+              <p className="genie-muted mb-6 max-w-md">We couldn't generate your landing page this time. Please try again or check your inputs.</p>
+              <GenieButton onClick={generate} variant="primary" className="gap-2">
                   <RefreshCw size={16} /> Retry Generation
-              </button>
+              </GenieButton>
           </div>
       );
   }
@@ -248,67 +247,70 @@ const LandingPageStep: React.FC<Props> = ({
         <div className="w-full lg:w-1/3 flex flex-col gap-6 lg:h-[calc(100vh-140px)] lg:overflow-y-auto pr-1">
             
             {/* Standard Fields */}
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                <h3 className="font-bold text-gray-800">Content</h3>
+            <GenieCard className="space-y-4">
                 <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Headline</label>
+                  <div className="genie-section-number">05.</div>
+                  <h3 className="font-semibold">Content</h3>
+                </div>
+                <div>
+                    <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Headline</label>
                     <textarea 
                         value={config.headline} 
                         onChange={(e) => handleUpdate('headline', e.target.value)}
-                        className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full text-sm"
                         rows={2}
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Subheadline</label>
+                    <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Subheadline</label>
                     <textarea 
                         value={config.subheadline} 
                         onChange={(e) => handleUpdate('subheadline', e.target.value)}
-                        className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full text-sm"
                         rows={3}
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">CTA Button</label>
+                    <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">CTA Button</label>
                     <input 
                         type="text"
                         value={config.cta} 
                         onChange={(e) => handleUpdate('cta', e.target.value)}
-                        className="w-full text-sm p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="w-full text-sm"
                     />
                 </div>
-            </div>
+            </GenieCard>
 
             {/* Form Builder */}
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <GenieCard className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-gray-800">Form Fields</h3>
-                    <button onClick={addField} className="text-xs flex items-center gap-1 text-blue-600 hover:bg-blue-50 px-2 py-1 rounded">
-                        <Plus size={14}/> Add Field
-                    </button>
+                    <h3 className="font-semibold">Form Fields</h3>
+                    <GenieButton onClick={addField} variant="secondary" className="gap-1 text-[10px]">
+                        <Plus size={12}/> Add Field
+                    </GenieButton>
                 </div>
                 <div className="space-y-3">
                     {(config.formSchema || []).map((field, idx) => (
-                        <div key={idx} className="flex gap-2 items-start bg-gray-50 p-2 rounded border border-gray-100 group">
+                        <div key={idx} className="flex gap-2 items-start bg-black p-2 rounded border border-green-500/20 group">
                             <div className="flex-1 space-y-2">
                                 <input 
                                     value={field.label}
                                     onChange={(e) => updateField(idx, { label: e.target.value })}
-                                    className="w-full text-xs font-medium bg-white border border-gray-200 rounded px-2 py-1"
+                                    className="w-full text-xs font-medium"
                                     placeholder="Label"
                                 />
                                 <div className="flex gap-2">
                                     <select 
                                         value={field.type}
                                         onChange={(e) => updateField(idx, { type: e.target.value as any })}
-                                        className="text-xs bg-white border border-gray-200 rounded px-1 py-1"
+                                        className="text-xs"
                                     >
                                         <option value="text">Text</option>
                                         <option value="email">Email</option>
                                         <option value="tel">Phone</option>
                                         <option value="textarea">Long Text</option>
                                     </select>
-                                    <label className="flex items-center gap-1 text-xs text-gray-500 cursor-pointer">
+                                    <label className="flex items-center gap-1 text-xs text-green-400/70 cursor-pointer">
                                         <input 
                                             type="checkbox" 
                                             checked={field.required}
@@ -317,53 +319,54 @@ const LandingPageStep: React.FC<Props> = ({
                                     </label>
                                 </div>
                             </div>
-                            <button onClick={() => removeField(idx)} className="text-gray-400 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition">
+                            <button onClick={() => removeField(idx)} className="text-green-400/60 hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition">
                                 <Trash2 size={14} />
                             </button>
                         </div>
                     ))}
                 </div>
-            </div>
+            </GenieCard>
 
             {/* Hero Image */}
-            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+            <GenieCard className="relative overflow-hidden">
                  <div className="flex justify-between items-center mb-4 relative z-10">
-                     <h3 className="font-bold text-gray-800">Hero Image</h3>
+                     <h3 className="font-semibold">Hero Image</h3>
                      <div className="flex gap-2">
-                         <label className="text-xs flex items-center gap-1 text-gray-600 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded cursor-pointer transition">
+                         <label className="text-xs flex items-center gap-1 text-green-300 border border-green-500/30 px-2 py-1 rounded cursor-pointer transition">
                              Upload
                              <input type="file" onChange={handleImageUpload} className="hidden" accept="image/*" />
                          </label>
-                         <button 
+                         <GenieButton 
                             onClick={() => generateImage(config)}
                             disabled={regeneratingImage}
-                            className="text-xs flex items-center gap-1 text-blue-600 hover:bg-blue-50 px-2 py-1 rounded disabled:opacity-50"
+                            variant="secondary"
+                            className="text-[10px]"
                          >
                             <RefreshCw size={12} className={regeneratingImage ? "animate-spin" : ""} />
                             Generate
-                         </button>
+                         </GenieButton>
                      </div>
                  </div>
                  
-                 <div className="relative w-full h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                 <div className="relative w-full h-32 rounded overflow-hidden border border-green-500/20 bg-black">
                      {regeneratingImage && (
-                        <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-200">
-                             <Loader2 size={24} className="text-blue-600 animate-spin mb-2" />
-                             <span className="text-xs font-semibold text-blue-600">Generating Visuals...</span>
+                        <div className="absolute inset-0 z-20 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-200">
+                             <Loader2 size={24} className="text-green-400 animate-spin mb-2" />
+                             <span className="text-xs font-semibold text-green-300">Generating Visuals...</span>
                         </div>
                      )}
                      
                      {config.imageUrl ? (
                          <img src={config.imageUrl} alt="Hero Preview" className="w-full h-full object-cover" />
                      ) : (
-                         <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-inner">
-                             <div className="text-center text-white/40">
-                                <span className="font-bold text-sm uppercase tracking-wider block">No Image</span>
+                         <div className="w-full h-full bg-black flex items-center justify-center shadow-inner">
+                             <div className="text-center text-green-400/40">
+                                <span className="font-bold text-xs uppercase tracking-[0.3em] block">No Image</span>
                              </div>
                          </div>
                      )}
                  </div>
-            </div>
+            </GenieCard>
 
         </div>
 
@@ -417,20 +420,17 @@ const LandingPageStep: React.FC<Props> = ({
       </div>
 
       {/* Sticky Footer */}
-      <div className="sticky bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 flex justify-between items-center mt-auto z-50">
-           <button onClick={onBack} className="text-gray-500 hover:text-gray-800 font-medium px-4 py-2">
+      <div className="sticky bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-md border-t border-green-500/20 flex justify-between items-center mt-auto z-50">
+           <GenieButton onClick={onBack} variant="secondary">
                Back to Asset
-           </button>
+           </GenieButton>
            <div className="flex items-center gap-4">
-              <span className="text-xs font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+              <span className="text-xs font-medium text-[#ccff00] border border-[#ccff00]/50 px-3 py-1 rounded">
                   Autosaved
               </span>
-              <button 
-                  onClick={() => onNext(config)} 
-                  className="bg-gray-900 hover:bg-black text-white px-6 py-2.5 rounded-lg font-medium shadow-lg shadow-gray-200 hover:shadow-xl transition-all"
-              >
-                  Generate Email Sequence &rarr;
-              </button>
+              <GenieButton onClick={() => onNext(config)} variant="primary">
+                  Generate Email Sequence -&gt;
+              </GenieButton>
            </div>
       </div>
     </div>

@@ -3,6 +3,8 @@ import { ICPProfile, LeadMagnetIdea, GeneratedAsset, ProductContext } from '../.
 import { generateAssetContent } from '../../services/llm';
 import { FileText, Loader2, RefreshCw, Copy, Check } from 'lucide-react';
 import CalculatorWidget from '../CalculatorWidget';
+import GenieCard from '../ui/GenieCard';
+import GenieButton from '../ui/GenieButton';
 
 interface Props {
   icp: ICPProfile;
@@ -49,77 +51,74 @@ const AssetStep: React.FC<Props> = ({ icp, idea, offerType, brandVoice, productC
     <div className="max-w-5xl mx-auto h-[calc(100vh-200px)] flex flex-col animate-fade-in">
        <div className="flex justify-between items-end mb-6 shrink-0">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Asset Generation</h2>
-          <p className="text-gray-500 mt-1">The core value piece your leads will download.</p>
+          <div className="genie-section-number">04.</div>
+          <h2 className="text-2xl font-semibold">Asset Generation</h2>
+          <p className="genie-muted mt-1">The core value piece your leads will download.</p>
         </div>
         <div className="flex gap-2">
             {!loading && (
-                 <button onClick={generate} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                 <GenieButton onClick={generate} variant="secondary" className="gap-2">
                     <RefreshCw size={14} /> Regenerate
-                 </button>
+                 </GenieButton>
             )}
         </div>
       </div>
 
-      <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col relative">
+      <GenieCard className="flex-1 overflow-hidden flex flex-col relative">
         {loading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 z-10">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3"/>
-                <p className="text-gray-500 animate-pulse">Drafting content for {idea.type}...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10">
+                <Loader2 className="w-8 h-8 text-green-400 animate-spin mb-3"/>
+                <p className="text-green-400/70 animate-pulse">Drafting content for {idea.type}...</p>
             </div>
         ) : null}
         
-        <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex justify-between items-center shrink-0">
-            <div className="flex items-center gap-2 text-gray-700 font-medium">
-                <FileText size={18} className="text-blue-500" />
+        <div className="border-b border-green-500/20 px-4 py-3 flex justify-between items-center shrink-0 bg-black">
+            <div className="flex items-center gap-2 text-green-300 font-medium">
+                <FileText size={16} className="text-green-400" />
                 <span>{idea.title}</span>
             </div>
             {asset && (
                 <button 
                   onClick={handleCopy}
-                  className="text-xs flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition"
+                  className="text-xs flex items-center gap-1.5 text-green-400/70 hover:text-green-300 transition"
                 >
-                    {copied ? <Check size={14} className="text-green-600"/> : <Copy size={14}/>}
+                    {copied ? <Check size={14} className="text-[#ccff00]"/> : <Copy size={14}/>}
                     {copied ? 'Copied' : 'Copy Text'}
                 </button>
             )}
         </div>
 
 
-        <div className="flex-1 overflow-auto p-8 font-mono text-sm leading-relaxed bg-white">
+        <div className="flex-1 overflow-auto p-8 text-sm leading-relaxed bg-black">
             {asset ? (
                 <div className="max-w-3xl mx-auto">
                     {asset.type === 'calculator' && asset.contentJson && (
-                        <div className="mb-8 not-prose font-sans">
+                        <div className="mb-8 not-prose">
                            <CalculatorWidget config={asset.contentJson} />
-                           <div className="my-8 border-t border-gray-100"></div>
+                           <div className="my-8 border-t border-green-500/20"></div>
                         </div>
                     )}
-                    <pre className="whitespace-pre-wrap">{asset.content}</pre>
+                    <pre className="whitespace-pre-wrap text-green-200">{asset.content}</pre>
                 </div>
             ) : (
-                <div className="h-full flex items-center justify-center text-gray-300">
+                <div className="h-full flex items-center justify-center text-green-400/50">
                     Waiting for generation...
                 </div>
             )}
         </div>
-      </div>
+      </GenieCard>
 
       <div className="flex justify-between pt-6 mt-2 shrink-0">
-        <button onClick={onBack} className="px-6 py-2.5 text-gray-600 font-medium hover:text-gray-900">
+        <GenieButton onClick={onBack} variant="secondary">
           Back
-        </button>
-        <button
+        </GenieButton>
+        <GenieButton
           onClick={() => asset && onNext(asset)}
           disabled={!asset || loading}
-          className={`px-8 py-2.5 rounded-lg font-medium shadow-md transition-all ${
-            asset && !loading
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-          }`}
+          variant="primary"
         >
-          Next: Create Landing Page &rarr;
-        </button>
+          Next: Create Landing Page -&gt;
+        </GenieButton>
       </div>
     </div>
   );

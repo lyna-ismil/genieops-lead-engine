@@ -73,32 +73,32 @@ const ChatWidget: React.FC = () => {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition flex items-center justify-center"
+        className="fixed bottom-6 right-6 z-50 genie-fab flex items-center justify-center"
         aria-label="Open chat"
       >
         {isOpen ? <X size={22} /> : <MessageCircle size={22} />}
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[90vw] bg-white shadow-2xl rounded-2xl border border-gray-200 flex flex-col overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[90vw] genie-chat-panel flex flex-col">
+          <div className="px-4 py-3 border-b border-green-500/30 flex items-center justify-between">
             <div>
-              <div className="text-sm font-semibold text-gray-900">Marketing Assistant</div>
-              <div className="text-xs text-gray-500">Context-aware campaign help</div>
+              <div className="text-xs uppercase tracking-[0.3em] text-green-400">Marketing Assistant</div>
+              <div className="text-xs text-green-400/70">Context-aware campaign help</div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="genie-icon-button"
               aria-label="Close chat"
             >
-              <X size={16} />
+              <X size={14} />
             </button>
           </div>
 
-          <div className="p-4 space-y-3 max-h-[360px] overflow-y-auto bg-gray-50">
+          <div className="p-4 space-y-3 max-h-[360px] overflow-y-auto bg-black">
             {messages.length === 0 && (
-              <div className="text-sm text-gray-500">
-                Ask about your campaign: “Write 3 subject lines” or “Refine the hook for this audience.”
+              <div className="text-sm text-green-400/70">
+                {'>'} Ask about your campaign: “Write 3 subject lines” or “Refine the hook for this audience.”
               </div>
             )}
             {messages.map(msg => (
@@ -107,10 +107,10 @@ const ChatWidget: React.FC = () => {
                 className={`text-sm leading-relaxed ${msg.role === 'user' ? 'text-right' : 'text-left'}`}
               >
                 <div
-                  className={`inline-block px-3 py-2 rounded-2xl max-w-[85%] ${
+                  className={`inline-block px-3 py-2 rounded-md max-w-[85%] border ${
                     msg.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white border border-gray-200 text-gray-800'
+                      ? 'bg-[#ccff00] text-black border-[#ccff00]/70'
+                      : 'bg-transparent text-green-300 border-green-500/30'
                   }`}
                 >
                   {msg.content}
@@ -119,7 +119,7 @@ const ChatWidget: React.FC = () => {
             ))}
             {isLoading && (
               <div className="text-left">
-                <div className="inline-flex items-center gap-2 text-xs text-gray-500 bg-white border border-gray-200 px-3 py-2 rounded-2xl">
+                <div className="inline-flex items-center gap-2 text-xs text-green-400/70 border border-green-500/30 px-3 py-2 rounded-md">
                   <Loader2 className="animate-spin" size={14} />
                   Thinking…
                 </div>
@@ -128,19 +128,19 @@ const ChatWidget: React.FC = () => {
             <div ref={bottomRef} />
           </div>
 
-          <div className="p-3 border-t border-gray-100 bg-white">
+          <div className="p-3 border-t border-green-500/30 bg-black">
             <div className="flex items-center gap-2">
               <input
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about your campaign…"
-                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 text-sm"
               />
               <button
                 onClick={handleSend}
                 disabled={isLoading || !input.trim()}
-                className="px-3 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60"
+                className="genie-button genie-button--primary"
               >
                 Send
               </button>

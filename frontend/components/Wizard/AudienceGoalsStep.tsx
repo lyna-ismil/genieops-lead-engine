@@ -3,6 +3,8 @@ import { ICPProfile, PersonaSummary, ProductContext } from '../../types';
 import { Sparkles, Target, Zap, MessageSquare } from 'lucide-react';
 import { analyzeWebsite, generatePersonaSummary } from '../../services/llm';
 import { useToast } from '../../context/ToastContext';
+import GenieCard from '../ui/GenieCard';
+import GenieButton from '../ui/GenieButton';
 
 interface Props {
   onNext: (icp: ICPProfile, productContext: ProductContext, offerType: string, brandVoice: string, targetConversion: string, summary?: PersonaSummary) => void;
@@ -126,28 +128,33 @@ const AudienceGoalsStep: React.FC<Props> = ({ onNext, initialData, initialOfferT
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in pb-20">
-      <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+      <GenieCard>
         
         {/* Outcome Header */}
-        <div className="mb-8 border-b border-gray-100 pb-6">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2 mb-2">
-                <span className="bg-blue-100 text-blue-600 p-1.5 rounded-lg"><Target size={24}/></span>
-                Audience & Goals
-            </h2>
-            <p className="text-gray-600 font-medium">
-                You'll walk out with: <span className="text-gray-500 font-normal">3 tailored lead magnet ideas, a finished asset, landing page copy, and an email sequence.</span>
-            </p>
-        </div>
+      <div className="mb-8 border-b border-green-500/20 pb-6">
+        <div className="genie-section-number">02.</div>
+        <h2 className="text-2xl font-semibold flex items-center gap-2 mb-2">
+          <span className="genie-icon-button"><Target size={16}/></span>
+          Audience & Goals
+        </h2>
+        <p className="genie-muted font-medium">
+          You'll walk out with: <span className="text-green-400/70 font-normal">3 tailored lead magnet ideas, a finished asset, landing page copy, and an email sequence.</span>
+        </p>
+      </div>
 
         {/* Quick Start Presets */}
         <div className="mb-8">
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Quick Start Presets</label>
+          <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-3">Quick Start Presets</label>
             <div className="flex flex-wrap gap-2">
                 {ROLES.map(r => (
                     <button 
                         key={r} 
                         onClick={() => applyPreset(r)}
-                        className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${formData.role === r ? 'bg-blue-50 border-blue-200 text-blue-700 font-medium' : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300'}`}
+                className={`text-xs uppercase tracking-[0.2em] px-3 py-1.5 border transition-colors ${
+                  formData.role === r
+                  ? 'bg-green-500/15 border-green-500/60 text-green-300'
+                  : 'bg-transparent border-green-500/30 text-green-400/70 hover:border-green-500/60'
+                }`}
                     >
                         {r}
                     </button>
@@ -158,50 +165,50 @@ const AudienceGoalsStep: React.FC<Props> = ({ onNext, initialData, initialOfferT
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Role */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Target Role / Job Title</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Target Role / Job Title</label>
             <input
               type="text"
               value={formData.role}
               onChange={e => handleChange('role', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full"
               placeholder="e.g. Marketing Manager"
             />
-            <p className="text-xs text-gray-400 mt-1">Used to tailor tone and examples.</p>
+            <p className="text-xs text-green-400/60 mt-1">Used to tailor tone and examples.</p>
           </div>
           
           {/* Industry */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Industry</label>
             <input
               type="text"
               value={formData.industry}
               onChange={e => handleChange('industry', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full"
               placeholder="e.g. B2B SaaS"
             />
           </div>
 
           {/* Offer Type */}
            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Offer Type</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Offer Type</label>
             <select 
                 value={offerType} 
                 onChange={e => setOfferType(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full"
             >
                 <option value="">Select Offer Type...</option>
                 {OFFERS.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
-            <p className="text-xs text-gray-400 mt-1">Determines the asset format best practices.</p>
+            <p className="text-xs text-green-400/60 mt-1">Determines the asset format best practices.</p>
           </div>
 
            {/* Brand Voice */}
            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Brand Voice</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Brand Voice</label>
             <select 
                 value={brandVoice} 
                 onChange={e => setBrandVoice(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full"
             >
                 <option value="">Select Voice...</option>
                 {VOICES.map(v => <option key={v} value={v}>{v}</option>)}
@@ -210,28 +217,28 @@ const AudienceGoalsStep: React.FC<Props> = ({ onNext, initialData, initialOfferT
         </div>
 
         {/* Product Context Section */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Product Context (Optional)</h3>
+        <div className="mb-6 p-4 bg-black border border-green-500/20 rounded">
+          <h3 className="text-xs uppercase tracking-[0.3em] text-green-400 mb-4">Product Context (Optional)</h3>
 
           {/* Company Name */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Company Name</label>
             <input
               type="text"
               value={productContext.companyName}
               onChange={e => setProductContext(prev => ({ ...prev, companyName: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full"
               placeholder="e.g. Acme Analytics"
             />
           </div>
 
           {/* Product Description */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Product Description</label>
             <textarea
               value={productContext.productDescription}
               onChange={e => setProductContext(prev => ({ ...prev, productDescription: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full"
               rows={3}
               placeholder="What do you sell and who is it for?"
             />
@@ -239,69 +246,70 @@ const AudienceGoalsStep: React.FC<Props> = ({ onNext, initialData, initialOfferT
 
           {/* Main Benefit */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Main Benefit</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Main Benefit</label>
             <input
               type="text"
               value={productContext.mainBenefit}
               onChange={e => setProductContext(prev => ({ ...prev, mainBenefit: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full"
               placeholder="e.g. Cut onboarding time in half"
             />
           </div>
           
           {/* Unique Mechanism */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Unique Mechanism / Secret Sauce</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Unique Mechanism / Secret Sauce</label>
             <input
               type="text"
               value={productContext.uniqueMechanism}
               onChange={e => setProductContext(prev => ({ ...prev, uniqueMechanism: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full"
               placeholder="e.g. AI-powered lead scoring algorithm"
             />
-            <p className="text-xs text-gray-400 mt-1">What is the specific method, algorithm, or framework you use?</p>
+            <p className="text-xs text-green-400/60 mt-1">What is the specific method, algorithm, or framework you use?</p>
           </div>
 
           {/* Competitor Contrast */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Competitor Contrast</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Competitor Contrast</label>
             <input
               type="text"
               value={productContext.competitorContrast}
               onChange={e => setProductContext(prev => ({ ...prev, competitorContrast: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              className="w-full"
               placeholder="e.g. Unlike HubSpot, we focus on micro-SaaS"
             />
-            <p className="text-xs text-gray-400 mt-1">Why us vs them?</p>
+            <p className="text-xs text-green-400/60 mt-1">Why us vs them?</p>
           </div>
 
           {/* Website URL */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
+            <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Website URL</label>
             <div className="flex gap-2">
               <input
                 type="url"
                 value={productContext.websiteUrl}
                 onChange={e => setProductContext(prev => ({ ...prev, websiteUrl: e.target.value }))}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                className="flex-1"
                 placeholder="https://yourwebsite.com"
               />
-              <button
+              <GenieButton
                 type="button"
                 onClick={handleAutoFill}
                 disabled={isAutoFilling}
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium ${isAutoFilling ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                variant="primary"
+                className="whitespace-nowrap"
               >
                 {isAutoFilling ? 'Analyzing...' : 'Auto-Fill'}
-              </button>
+              </GenieButton>
             </div>
-            <p className="text-xs text-gray-400 mt-1">We’ll scan your site to fill in the fields above.</p>
+            <p className="text-xs text-green-400/60 mt-1">We’ll scan your site to fill in the fields above.</p>
           </div>
         </div>
         
         {/* Pain Points */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Top Pain Points</label>
+          <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Top Pain Points</label>
           <div className="space-y-3">
             {formData.painPoints.map((point, idx) => (
                 <input
@@ -309,103 +317,103 @@ const AudienceGoalsStep: React.FC<Props> = ({ onNext, initialData, initialOfferT
                 type="text"
                 value={point}
                 onChange={e => handleArrayChange('painPoints', idx, e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                className="w-full text-sm"
                 placeholder={`Pain point #${idx + 1}`}
                 />
             ))}
           </div>
-          <button onClick={() => addArrayItem('painPoints')} className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
+          <GenieButton onClick={() => addArrayItem('painPoints')} variant="secondary" className="mt-2">
             + Add another pain point
-          </button>
-           <p className="text-xs text-gray-400 mt-1">Drives specific hooks and bullet points.</p>
+          </GenieButton>
+           <p className="text-xs text-green-400/60 mt-1">Drives specific hooks and bullet points.</p>
         </div>
 
         {/* Goals */}
         <div className="mb-8">
            <div className="flex justify-between items-center mb-2">
-             <label className="block text-sm font-medium text-gray-700">Primary Conversion Goal</label>
+           <label className="block text-xs uppercase tracking-[0.3em] text-green-400">Primary Conversion Goal</label>
            </div>
            
            <input
                 type="text"
                 value={targetConversion}
                 onChange={e => setTargetConversion(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            className="w-full text-sm"
                 placeholder="e.g. Book a Demo, 7-Day Free Trial, Newsletter Signup"
             />
             
             <div className="mt-4">
-                 <label className="block text-sm font-medium text-gray-700 mb-2">Audience Goals (What they want)</label>
+             <label className="block text-xs uppercase tracking-[0.3em] text-green-400 mb-2">Audience Goals (What they want)</label>
                  {formData.goals.map((goal, idx) => (
                     <input
                     key={idx}
                     type="text"
                     value={goal}
                     onChange={e => handleArrayChange('goals', idx, e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+              className="w-full mb-2 text-sm"
                     placeholder={`Goal #${idx + 1}`}
                     />
                 ))}
-                <button onClick={() => addArrayItem('goals')} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                    + Add another goal
-                </button>
+            <GenieButton onClick={() => addArrayItem('goals')} variant="secondary">
+              + Add another goal
+            </GenieButton>
             </div>
         </div>
 
         {/* Immediate Value Generator */}
         {isValid && !personaSummary && (
-            <div className={`p-4 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-between transition-all ${isGenerating ? 'opacity-75' : ''}`}>
+            <div className={`p-4 rounded border border-green-500/30 bg-black flex items-center justify-between transition-all ${isGenerating ? 'opacity-75' : ''}`}>
                 <div>
-                   <h4 className="text-sm font-semibold text-blue-800">Ready to see who you're targeting?</h4> 
-                   <p className="text-xs text-blue-600">Generate an AI persona summary before moving on.</p>
+                   <h4 className="text-sm font-semibold text-green-300">Ready to see who you're targeting?</h4> 
+                   <p className="text-xs text-green-400/70">Generate an AI persona summary before moving on.</p>
                 </div>
-                <button 
+                <GenieButton
                   onClick={handleGenerateIdentity}
                   disabled={isGenerating}
-                  className="px-4 py-2 bg-white text-blue-600 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  variant="secondary"
+                  className="gap-2"
                 >
                     {isGenerating ? <span className="animate-spin">✨</span> : <Sparkles size={16}/>}
                     {isGenerating ? 'Generating...' : 'Generate Identity'}
-                </button>
+                </GenieButton>
             </div>
         )}
 
         {/* Persona Summary Result */}
         {personaSummary && (
-             <div className="mt-6 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 animate-slide-up">
-                <h3 className="text-md font-bold text-indigo-900 mb-2 flex items-center gap-2">
-                    <Zap size={18} className="text-amber-500 fill-amber-500"/> 
-                    Your Audience Identity
-                </h3>
-                <p className="text-indigo-800 text-sm mb-4 leading-relaxed">{personaSummary.summary}</p>
+           <div className="mt-6 p-6 bg-black rounded border border-green-500/30 animate-slide-up">
+            <h3 className="text-md font-semibold text-green-300 mb-2 flex items-center gap-2">
+              <Zap size={18} className="text-[#ccff00]"/> 
+              Your Audience Identity
+            </h3>
+            <p className="text-green-200 text-sm mb-4 leading-relaxed">{personaSummary.summary}</p>
                 
-                <div className="space-y-2">
-                    <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">High-Converting Hooks</p>
-                    {personaSummary.hooks.map((hook, i) => (
-                        <div key={i} className="flex items-start gap-2 text-indigo-700 text-sm italic bg-white/60 p-2 rounded">
-                            <MessageSquare size={14} className="mt-1 flex-shrink-0 opacity-50"/>
-                            "{hook}"
-                        </div>
-                    ))}
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-[0.3em] text-green-400/70">High-Converting Hooks</p>
+              {personaSummary.hooks.map((hook, i) => (
+                <div key={i} className="flex items-start gap-2 text-green-200 text-sm italic border border-green-500/20 p-2 rounded">
+                  <MessageSquare size={14} className="mt-1 flex-shrink-0 opacity-50"/>
+                  "{hook}"
                 </div>
+              ))}
             </div>
+          </div>
         )}
 
         {/* Action Footer */}
         <div className="mt-8 flex justify-end gap-4 items-center">
-             {personaSummary && <span className="text-sm text-gray-500 mr-2">Looks good? Let's get ideas.</span>}
+             {personaSummary && <span className="text-sm text-green-400/70 mr-2">Looks good? Let's get ideas.</span>}
            
-           <button
+           <GenieButton
             onClick={handleContinue}
             disabled={!isValid || isGenerating}
-            className={`px-8 py-3 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl flex items-center gap-2 ${
-              isValid ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white transform hover:-translate-y-0.5' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
+            variant="primary"
+            className="px-8 py-3 text-sm"
           >
-            Next: Generate Lead Magnet Ideas &rarr;
-          </button>
+            Next: Generate Lead Magnet Ideas -&gt;
+          </GenieButton>
         </div>
-      </div>
+      </GenieCard>
     </div>
   );
 };

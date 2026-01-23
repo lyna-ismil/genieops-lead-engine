@@ -6,6 +6,8 @@ import LandingPageRenderer from '../components/LandingPageRenderer';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { request } from '../services/api';
+import Layout from '../components/Layout';
+import GenieCard from '../components/ui/GenieCard';
 
 const LandingPagePreview: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,28 +39,56 @@ const LandingPagePreview: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={32} />
-      </div>
+      <Layout>
+        <div className="flex h-[60vh] items-center justify-center">
+          <Loader2 className="animate-spin text-green-400" size={32} />
+        </div>
+      </Layout>
     );
   }
 
   if (!project || !project.landingPage) {
-    return <div className="p-8 text-center text-gray-500">Landing page not found.</div>;
+    return (
+      <Layout>
+        <div className="max-w-2xl mx-auto">
+          <GenieCard className="text-center">
+            <p className="genie-muted">Landing page not found.</p>
+          </GenieCard>
+        </div>
+      </Layout>
+    );
   }
 
   return (
-    <LandingPageRenderer 
-        config={project.landingPage} 
-        mode="desktop" // Preview is always full screen desktop/responsive
-        onSubmit={handleSubmit}
-      primaryColor={project.productContext?.primaryColor}
-      brand={{
-        primaryColor: project.productContext?.primaryColor,
-        fontStyle: project.productContext?.fontStyle,
-        logoUrl: project.productContext?.logoUrl
-      }}
-    />
+    <Layout>
+      <div className="max-w-6xl mx-auto">
+        <div className="genie-section-number">03.</div>
+        <h1 className="text-2xl font-semibold mb-6">Landing Page Preview</h1>
+        <div className="genie-preview-frame">
+          <div className="genie-preview-header">
+            <span className="genie-preview-dot" />
+            <span className="genie-preview-dot" />
+            <span className="genie-preview-dot" />
+            <span>Preview Terminal</span>
+          </div>
+          <div className="genie-preview-body">
+            <div className="genie-preview-content">
+              <LandingPageRenderer
+                config={project.landingPage}
+                mode="desktop"
+                onSubmit={handleSubmit}
+                primaryColor={project.productContext?.primaryColor}
+                brand={{
+                  primaryColor: project.productContext?.primaryColor,
+                  fontStyle: project.productContext?.fontStyle,
+                  logoUrl: project.productContext?.logoUrl,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
   );
 };
 
